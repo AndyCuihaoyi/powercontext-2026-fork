@@ -1,0 +1,255 @@
+{
+  "name": "e2e-report",
+  "startedAt": "2026-10-28T02:25:49.156Z",
+  "finishedAt": "2026-10-28T02:26:03.464Z",
+  "status": "passed",
+  "meta": {
+    "baseUrl": "http://127.0.0.1:8797",
+    "collectionName": "端到端验收-rhsuw4",
+    "unique": "端侧星河rhsuw4",
+    "incrementalProbe": "增量探针rhsuw4"
+  },
+  "steps": [
+    {
+      "name": "打开应用并等待本地模型就绪",
+      "status": "passed",
+      "ms": 3362,
+      "detail": {
+        "backend": {
+          "backend": "webgpu",
+          "dtype": "q8",
+          "label": "WebGPU · INT8",
+          "reason": "检测到 google swiftshader SwiftShader Device (Subzero)",
+          "webgpuDetected": true,
+          "forcedWasm": false,
+          "attempts": [
+            {
+              "candidate": "WebGPU · FP16",
+              "ok": false,
+              "error": "The device (webgpu) does not support fp16."
+            },
+            {
+              "candidate": "WebGPU · INT8",
+              "ok": true
+            }
+          ],
+          "loadMs": 892.1150002479553,
+          "warmupMs": 1522.789999961853
+        },
+        "webgpuDetected": true
+      }
+    },
+    {
+      "name": "通过 UI 创建独立测试集合",
+      "status": "passed",
+      "ms": 251,
+      "detail": {
+        "collectionId": "kb_9b1f30ebfe",
+        "seekdbCollection": "sf_kb_9b1f30ebfe"
+      }
+    },
+    {
+      "name": "UI 导入文档并完成刷新验证",
+      "status": "passed",
+      "ms": 3730,
+      "detail": {
+        "document": {
+          "docId": "doc_c4fa1f06a3ece2d7",
+          "title": "混合检索验收-rhsuw4",
+          "contentHash": "28b40c48c90559204bfe2367194ff9aebfb55a164c0d7d69f57f128a699bd09a",
+          "charCount": 370,
+          "chunkCount": 2,
+          "chunkPrefix": "doc_c4fa1f06a3ece2d7__3b04b552612c",
+          "importedAt": 1793154355617
+        },
+        "indexState": {
+          "docCount": 1,
+          "chunkCount": 2,
+          "lastImportAt": 1793154355617,
+          "lastRefreshAt": 1793154356394,
+          "refreshMs": 607,
+          "verified": 1
+        },
+        "physical": "c$v2$e5bfa9b3d27611f1b5b97085c26c2330",
+        "rows": 2
+      }
+    },
+    {
+      "name": "UI 混合检索命中导入内容",
+      "status": "passed",
+      "ms": 667,
+      "detail": {
+        "searchMs": 3.6,
+        "topK": 8,
+        "candidateK": 32,
+        "results": [
+          {
+            "title": "混合检索验收-rhsuw4",
+            "docId": "doc_c4fa1f06a3ece2d7",
+            "distance": 0.0328
+          },
+          {
+            "title": "混合检索验收-rhsuw4",
+            "docId": "doc_c4fa1f06a3ece2d7",
+            "distance": 0.0161
+          }
+        ]
+      }
+    },
+    {
+      "name": "增量导入后新内容立即可检索",
+      "status": "passed",
+      "ms": 1968,
+      "detail": {
+        "import": {
+          "chunks": 1,
+          "refreshMs": 501,
+          "verified": true
+        },
+        "verification": {
+          "docId": "doc_ed47efb67c03d90b",
+          "title": "增量导入验收-rhsuw4",
+          "fulltextHit": true,
+          "fulltextProbe": "批量刷新之后才写入 用于验证增量导入与索引刷新流",
+          "vectorHit": true,
+          "vectorDistance": 8.940699780524143e-8,
+          "probeAvailable": true
+        },
+        "refreshMs": 603
+      }
+    },
+    {
+      "name": "集合切换时文档隔离且可切回",
+      "status": "passed",
+      "ms": 258,
+      "detail": {
+        "switchedCollectionId": "kb_7ba2b2fb3f"
+      }
+    },
+    {
+      "name": "刷新页面后恢复集合、后端与最近查询",
+      "status": "passed",
+      "ms": 2651,
+      "detail": {
+        "backendBefore": "WebGPU · INT8",
+        "backendAfter": "WebGPU · INT8",
+        "lastQuery": "增量探针rhsuw4"
+      }
+    },
+    {
+      "name": "强制 WASM 参数生效并在 UI 标注",
+      "status": "passed",
+      "ms": 1099,
+      "detail": {
+        "backend": "wasm",
+        "dtype": "q8",
+        "notice": "已通过 URL 参数强制使用 WASM 后端。"
+      }
+    },
+    {
+      "name": "运行期无外部网络请求",
+      "status": "passed",
+      "ms": 0,
+      "detail": {
+        "externalRequests": 0
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "后端为浏览器本地推理",
+      "ok": true,
+      "detail": "WebGPU · INT8"
+    },
+    {
+      "name": "后端状态包含降级尝试记录",
+      "ok": true,
+      "detail": "WebGPU · FP16✗,WebGPU · INT8✓"
+    },
+    {
+      "name": "WebGPU 探测成功（优先尝试）",
+      "ok": true,
+      "detail": "WebGPU · INT8"
+    },
+    {
+      "name": "集合写入 seekdb 元数据表",
+      "ok": true,
+      "detail": "sf_kb_9b1f30ebfe"
+    },
+    {
+      "name": "浏览器切块产生多个分块",
+      "ok": true,
+      "detail": "2 块 / 370 字"
+    },
+    {
+      "name": "集合详情包含文档与索引状态",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "集合 schema 为 HNSW/512d/cosine + IK",
+      "ok": true,
+      "detail": "{\"vectorIndex\":{\"hnsw\":{\"distance\":\"cosine\",\"dimension\":512}},\"fulltextIndex\":{\"analyzer\":\"ik\",\"properties\":{\"ik_mode\":\"smart\"}}}"
+    },
+    {
+      "name": "seekdb 物理表同时具备全文与向量索引",
+      "ok": true,
+      "detail": "c$v2$e5bfa9b3d27611f1b5b97085c26c2330 · 2 行"
+    },
+    {
+      "name": "物理表行数与元数据分块数一致",
+      "ok": true,
+      "detail": "2/2"
+    },
+    {
+      "name": "检索由 seekdb 内部 RRF 融合",
+      "ok": true,
+      "detail": "seekdb/rrf"
+    },
+    {
+      "name": "命中目标文档",
+      "ok": true,
+      "detail": "top1=混合检索验收-rhsuw4 · 3.6 ms · 候选 32"
+    },
+    {
+      "name": "刷新同时通过全文与向量探测",
+      "ok": true,
+      "detail": "fulltext=true · vector=true · 603 ms"
+    },
+    {
+      "name": "增量文档可检索",
+      "ok": true,
+      "detail": "top1=增量导入验收-rhsuw4"
+    },
+    {
+      "name": "集合隔离与切换",
+      "ok": true,
+      "detail": "新集合 0 篇，切回后 2 篇"
+    },
+    {
+      "name": "会话恢复集合与最近查询",
+      "ok": true,
+      "detail": "kb_9b1f30ebfe · 增量探针rhsuw4"
+    },
+    {
+      "name": "刷新后后端仍可用",
+      "ok": true,
+      "detail": "WebGPU · INT8"
+    },
+    {
+      "name": "强制 WASM 生效",
+      "ok": true,
+      "detail": "WASM · INT8"
+    },
+    {
+      "name": "仅访问本机资源",
+      "ok": true,
+      "detail": "0 个外部请求"
+    }
+  ],
+  "consoleErrors": [],
+  "externalRequests": [],
+  "durationMs": 14166,
+  "collectionId": "kb_9b1f30ebfe",
+  "cleanup": "deleted test collection"
+}

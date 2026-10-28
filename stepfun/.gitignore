@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.seekdb/
+public/models/
+public/ort/
+*.log
+.DS_Store

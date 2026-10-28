@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="浏览器本地向量化 + seekdb 混合检索的迷你知识库" />
+    <title>StepFun Mini KB · 端侧向量化知识库</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◈</span>
+        <div>
+          <h1>StepFun Mini KB</h1>
+          <p>浏览器本地向量化 · seekdb 混合检索</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span id="backend-badge" class="badge loading">检测推理后端…</span>
+        <span id="model-badge" class="badge ghost">bge-small-zh-v1.5</span>
+        <a id="wasm-toggle" class="toggle-link" href="?backend=wasm">强制 WASM</a>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="kb">知识库</button>
+      <button class="tab" data-tab="bench">量化基准</button>
+      <button class="tab" data-tab="about">技术说明</button>
+    </nav>
+
+    <main>
+      <section id="tab-kb" class="tab-panel active">
+        <aside class="sidebar">
+          <div class="card">
+            <div class="card-head">
+              <h2>知识库集合</h2>
+              <span id="collection-count" class="count"></span>
+            </div>
+            <ul id="collections" class="collection-list"></ul>
+            <div class="inline-form">
+              <input id="collection-name" maxlength="40" placeholder="新集合名称" />
+              <button id="create-collection" class="secondary">创建</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2>文档</h2>
+              <span id="doc-count" class="count">0</span>
+            </div>
+            <ul id="documents" class="doc-list"></ul>
+            <div id="index-state" class="index-state muted">尚未选择集合</div>
+            <button id="refresh-index" class="secondary wide" disabled>刷新索引</button>
+            <p class="hint">导入与删除后自动刷新；也可手动刷新后验证新增内容可检索。</p>
+          </div>
+
+          <div class="card session-card">
+            <h2>会话</h2>
+            <p id="session-info" class="muted">—</p>
+            <p class="hint">会话 ID 与服务端记录用于在刷新页面后恢复集合、后端与最近查询。</p>
+          </div>
+        </aside>
+
+        <div class="workspace">
+          <div id="notice" class="notice" hidden></div>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>导入文档</h2>
+              <span class="muted">浏览器内切块 + 向量化，写入当前集合</span>
+            </div>
+            <label class="field">
+              <span>标题</span>
+              <input id="doc-title" maxlength="120" placeholder="例如：seekdb 混合检索说明" />
+            </label>
+            <label class="field">
+              <span>正文</span>
+              <textarea id="doc-content" rows="8" placeholder="粘贴文本，或从本地选择 .txt / .md 文件。"></textarea>
+            </label>
+            <div class="actions">
+              <label class="file-button">
+                选择文件
+                <input id="doc-file" type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" hidden />
+              </label>
+              <button id="import-button" disabled>向量化并写入 seekdb</button>
+              <button id="sample-button" class="secondary" disabled>导入示例语料（24 篇）</button>
+              <span id="import-hint" class="hint inline">模型加载完成后可导入</span>
+            </div>
+            <div id="import-progress" class="progress-list"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>混合检索</h2>
+              <span class="muted">全文 + 向量 · RRF 融合在 seekdb 内完成</span>
+            </div>
+            <div class="search-row">
+              <input id="query-input" placeholder="输入问题，例如：RRF 公式里的 k 取多少？" autocomplete="off" />
+              <select id="topk" title="返回条数">
+                <option value="5">Top 5</option>
+                <option value="8" selected>Top 8</option>
+                <option value="12">Top 12</option>
+              </select>
+              <button id="search-button" disabled>检索</button>
+            </div>
+            <div id="search-meta" class="search-meta muted">等待模型与集合就绪</div>
+            <ol id="results" class="results"></ol>
+          </section>
+        </div>
+      </section>
+
+      <section id="tab-bench" class="tab-panel" hidden>
+        <div class="card">
+          <div class="card-head">
+            <h2>量化与推理后端基准</h2>
+            <span class="muted">同一语料、同一评估集，对比模型体积、质量与分阶段延迟</span>
+          </div>
+          <p class="prose">
+            基准会在浏览器内分别加载所选模型精度，把 24 篇示例文档导入临时集合（每个变体独立），
+            用 22 条标注查询计算文档级 Recall@5 / Recall@10 / nDCG@10，同时记录模型加载、
+            文档向量化、索引刷新、查询向量化与 seekdb 检索的耗时。结束后临时集合会自动删除。
+          </p>
+          <div id="bench-capabilities" class="chips"></div>
+          <div class="bench-options">
+            <label><input type="checkbox" data-variant="wasm-fp32" checked /> WASM · FP32（基线）</label>
+            <label><input type="checkbox" data-variant="wasm-q8" checked /> WASM · INT8</label>
+            <label><input type="checkbox" data-variant="webgpu-fp16" /> WebGPU · FP16</label>
+            <label><input type="checkbox" data-variant="webgpu-q8" /> WebGPU · INT8</label>
+          </div>
+          <div class="actions">
+            <button id="bench-run">运行基准测试</button>
+            <button id="bench-download" class="secondary" disabled>下载 JSON</button>
+            <span id="bench-hint" class="hint inline">首次运行会重复加载模型，耗时约 1–3 分钟</span>
+          </div>
+          <div id="bench-progress" class="progress-list"></div>
+          <div id="bench-results"></div>
+        </div>
+      </section>
+
+      <section id="tab-about" class="tab-panel" hidden>
+        <div class="card prose">
+          <h2>一页技术说明</h2>
+          <p>
+            这是一个纯本地推理的迷你知识库：文档切块与 embedding 全部在浏览器内完成
+            （Transformers.js + ONNX Runtime Web），向量、原文与元数据写入本地 seekdb，
+            检索调用 seekdb-js 的 <code>hybridSearch</code>，由数据库通过
+            <code>DBMS_HYBRID_SEARCH.GET_SQL</code> 生成一条融合 SQL 并执行 RRF。
+            应用层不会分别拉取两路结果再自行拼合。
+          </p>
+
+          <h3>模型与量化</h3>
+          <table id="about-model" class="data-table"></table>
+
+          <h3>推理后端</h3>
+          <p>
+            启动时探测 <code>navigator.gpu</code>：可用则优先 WebGPU + FP16，若设备不支持 FP16
+            依次回退 WebGPU + INT8、WASM + INT8；WebGPU 不可用则直接使用 WASM + INT8。
+            所有切换都会在右上角标注实际后端与精度。访问 <code>?backend=wasm</code> 可强制降级。
+            模型与 ONNX Runtime 的 WASM 文件均由本机静态目录提供，运行期不访问云端推理服务。
+          </p>
+
+          <h3>seekdb 数据层</h3>
+          <ul>
+            <li>每个集合对应一个 seekdb collection：<code>FULLTEXT ... WITH PARSER ik</code> + HNSW（512 维，cosine）。</li>
+            <li>应用元数据表（<code>stepfun_*</code>）记录集合、文档、索引刷新状态与会话。</li>
+            <li>导入时浏览器提交分块与向量；服务端校验正文哈希、分块子串与向量归一化后批量写入。</li>
+            <li>批量导入完成后调用一次 <code>refresh_index()</code>，并用新文档的独特片段做全文探测，确认刷新后可检索。</li>
+            <li>删除文档会清理其块并刷新索引；集合切换与最近查询写入会话，刷新页面后恢复。</li>
+          </ul>
+
+          <h3>边界与红线</h3>
+          <ul>
+            <li>不调用任何云端推理 API；运行期浏览器请求只指向本机静态资源与本地 API。</li>
+            <li>不在服务端预计算或回放向量；服务端只做校验、持久化与数据库检索。</li>
+            <li>不使用客户端内存检索或两路结果手工拼接替代数据库混合检索。</li>
+            <li>模型权重不进入仓库；<code>npm run models:fetch</code> 按锁定 revision 与 SHA-256 下载。</li>
+          </ul>
+          <p id="about-health" class="muted"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>2026 OceanBase 数据库大赛 · 企业生态赛 · 阶跃星辰</span>
+      <span id="footer-status">本地推理 · 本地 seekdb</span>
+    </footer>
+
+    <div id="toast" class="toast" hidden></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

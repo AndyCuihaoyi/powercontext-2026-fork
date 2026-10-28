@@ -1,0 +1,98 @@
+{
+  "name": "benchmark-report",
+  "startedAt": "2026-10-28T02:18:11.726Z",
+  "finishedAt": "2026-10-28T02:20:00.462Z",
+  "status": "passed",
+  "meta": {
+    "baseUrl": "http://127.0.0.1:8797",
+    "variants": [
+      "wasm-fp32",
+      "wasm-q8",
+      "webgpu-fp16",
+      "webgpu-q8"
+    ]
+  },
+  "steps": [
+    {
+      "name": "准备应用与默认推理链路",
+      "status": "passed",
+      "ms": 5466,
+      "detail": {
+        "backend": "WebGPU · INT8",
+        "webgpuDetected": true
+      }
+    },
+    {
+      "name": "运行基准变体：wasm-fp32 / wasm-q8 / webgpu-fp16 / webgpu-q8",
+      "status": "passed",
+      "ms": 102143,
+      "detail": {
+        "variants": [
+          {
+            "key": "wasm-fp32",
+            "status": "ok"
+          },
+          {
+            "key": "wasm-q8",
+            "status": "ok"
+          },
+          {
+            "key": "webgpu-fp16",
+            "status": "error"
+          },
+          {
+            "key": "webgpu-q8",
+            "status": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "name": "校验基准结果完整性",
+      "status": "passed",
+      "ms": 52,
+      "detail": {
+        "ok": [
+          "wasm-fp32",
+          "wasm-q8",
+          "webgpu-q8"
+        ],
+        "failed": [
+          "webgpu-fp16: 本地模型加载失败：The device (webgpu) does not support fp16.。请确认 public/models 与 public/ort 已就绪（npm run models:fetch / npm run build）。"
+        ]
+      }
+    },
+    {
+      "name": "保存基准界面截图",
+      "status": "passed",
+      "ms": 738,
+      "detail": {
+        "screenshot": "evidence/bench-02-results.png"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "INT8 模型显著压缩",
+      "ok": true,
+      "detail": "3.95×"
+    },
+    {
+      "name": "INT8 质量未大幅退化",
+      "ok": true,
+      "detail": "Recall@10 0.955 → 0.977"
+    },
+    {
+      "name": "FP16 变体有明确结果（成功或带原因的失败）",
+      "ok": true,
+      "detail": "本地模型加载失败：The device (webgpu) does not support fp16.。请确认 public/models 与 public/ort 已就绪（npm run models:fetch / npm run build）。"
+    },
+    {
+      "name": "临时基准集合已清理",
+      "ok": true,
+      "detail": "0 个残留"
+    }
+  ],
+  "consoleErrors": [],
+  "externalRequests": []
+}

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-28T02:18:17.530Z",
+  "finishedAt": "2026-10-28T02:19:59.659Z",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36",
+  "webgpu": {
+    "available": true,
+    "reason": "检测到 google swiftshader SwiftShader Device (Subzero)"
+  },
+  "corpus": {
+    "docs": 24,
+    "queries": 22,
+    "chunksPerVariant": 25
+  },
+  "modelFiles": {
+    "config.json": 716,
+    "tokenizer.json": 439125,
+    "onnx/model.onnx": 94851877,
+    "onnx/model_fp16.onnx": 47497427,
+    "onnx/model_quantized.onnx": 24010842
+  },
+  "modelBytes": {
+    "fp32": 94851877,
+    "fp16": 47497427,
+    "q8": 24010842
+  },
+  "variants": [
+    {
+      "key": "wasm-fp32",
+      "label": "WASM · FP32",
+      "device": "wasm",
+      "dtype": "fp32",
+      "status": "ok",
+      "modelBytes": 94851877,
+      "compressionRatio": 1,
+      "loadMs": 819,
+      "warmupMs": 44,
+      "docCount": 24,
+      "chunkCount": 25,
+      "embedDocsMs": 4730,
+      "embedPerChunkMs": 189.2,
+      "stageImportMs": 491,
+      "refreshMs": 502,
+      "refreshVerified": true,
+      "seedMs": 123,
+      "firstQueryE2eMs": 43.1,
+      "queryEmbedMs": {
+        "median": 14.4,
+        "p95": 26.3,
+        "min": 10.1,
+        "max": 29.2
+      },
+      "searchMs": {
+        "median": 7.1,
+        "p95": 9,
+        "min": 6.3,
+        "max": 10.1
+      },
+      "e2eMs": {
+        "median": 31.3,
+        "p95": 49.1,
+        "min": 25.2,
+        "max": 51
+      },
+      "quality": {
+        "recall5": 0.909,
+        "recall10": 0.955,
+        "mrr": 0.909,
+        "ndcg10": 0.874,
+        "evaluatedQueries": 22,
+        "hitQueries": 22
+      }
+    },
+    {
+      "key": "wasm-q8",
+      "label": "WASM · INT8",
+      "device": "wasm",
+      "dtype": "q8",
+      "status": "ok",
+      "modelBytes": 24010842,
+      "compressionRatio": 3.95,
+      "loadMs": 341,
+      "warmupMs": 28,
+      "docCount": 24,
+      "chunkCount": 25,
+      "embedDocsMs": 11031,
+      "embedPerChunkMs": 441.2,
+      "stageImportMs": 7315,
+      "refreshMs": 502,
+      "refreshVerified": true,
+      "seedMs": 125,
+      "firstQueryE2eMs": 36.5,
+      "queryEmbedMs": {
+        "median": 12.3,
+        "p95": 21.2,
+        "min": 8.7,
+        "max": 22.3
+      },
+      "searchMs": {
+        "median": 7.9,
+        "p95": 14.9,
+        "min": 6.4,
+        "max": 15.2
+      },
+      "e2eMs": {
+        "median": 31.3,
+        "p95": 38.8,
+        "min": 22.8,
+        "max": 44.9
+      },
+      "quality": {
+        "recall5": 0.909,
+        "recall10": 0.977,
+        "mrr": 0.909,
+        "ndcg10": 0.886,
+        "evaluatedQueries": 22,
+        "hitQueries": 22
+      }
+    },
+    {
+      "key": "webgpu-fp16",
+      "label": "WebGPU · FP16",
+      "device": "webgpu",
+      "dtype": "fp16",
+      "status": "error",
+      "modelBytes": 47497427,
+      "compressionRatio": 2,
+      "loadMs": null,
+      "warmupMs": null,
+      "docCount": 0,
+      "chunkCount": 0,
+      "embedDocsMs": null,
+      "embedPerChunkMs": null,
+      "stageImportMs": null,
+      "refreshMs": null,
+      "refreshVerified": null,
+      "seedMs": null,
+      "firstQueryE2eMs": null,
+      "queryEmbedMs": null,
+      "searchMs": null,
+      "e2eMs": null,
+      "quality": null,
+      "error": "本地模型加载失败：The device (webgpu) does not support fp16.。请确认 public/models 与 public/ort 已就绪（npm run models:fetch / npm run build）。"
+    },
+    {
+      "key": "webgpu-q8",
+      "label": "WebGPU · INT8",
+      "device": "webgpu",
+      "dtype": "q8",
+      "status": "ok",
+      "modelBytes": 24010842,
+      "compressionRatio": 3.95,
+      "loadMs": 408,
+      "warmupMs": 367,
+      "docCount": 24,
+      "chunkCount": 25,
+      "embedDocsMs": 64580,
+      "embedPerChunkMs": 2583.2,
+      "stageImportMs": 753,
+      "refreshMs": 618,
+      "refreshVerified": true,
+      "seedMs": 1130,
+      "firstQueryE2eMs": 651.3,
+      "queryEmbedMs": {
+        "median": 594,
+        "p95": 670.5,
+        "min": 392,
+        "max": 676.4
+      },
+      "searchMs": {
+        "median": 12.2,
+        "p95": 19.2,
+        "min": 9.7,
+        "max": 19.9
+      },
+      "e2eMs": {
+        "median": 621.2,
+        "p95": 693.8,
+        "min": 417.1,
+        "max": 696.6
+      },
+      "quality": {
+        "recall5": 0.758,
+        "recall10": 0.955,
+        "mrr": 0.698,
+        "ndcg10": 0.708,
+        "evaluatedQueries": 22,
+        "hitQueries": 22
+      }
+    }
+  ],
+  "baselineKey": "wasm-fp32"
+}

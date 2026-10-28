@@ -1,0 +1,38 @@
+{
+  "name": "stepfun-mini-kb",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Browser-side embedding + seekdb hybrid retrieval mini knowledge base (OceanBase 2026 ecosystem track)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "predev": "node scripts/prepare-assets.mjs",
+    "dev": "node scripts/dev.mjs",
+    "prebuild": "node scripts/prepare-assets.mjs",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "start": "node server/index.mjs",
+    "db:start": "node scripts/db.mjs start",
+    "db:stop": "node scripts/db.mjs stop",
+    "db:status": "node scripts/db.mjs status",
+    "db:init": "node scripts/db.mjs init",
+    "models:fetch": "node scripts/fetch-models.mjs",
+    "test:e2e": "node tests/e2e.mjs",
+    "benchmark": "node tests/benchmark.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "3.7.2",
+    "express": "5.1.0",
+    "mysql2": "3.11.5",
+    "seekdb": "1.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3",
+    "@types/node": "22.18.0",
+    "playwright": "1.55.0",
+    "typescript": "5.9.2",
+    "vite": "7.1.0"
+  }
+}
