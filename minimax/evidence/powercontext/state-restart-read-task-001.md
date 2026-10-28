@@ -3,7 +3,7 @@
 - 后端：powercontext-embedded-sqlite v1.4.1
 - 数据库：`/home/cuihaoyi/OceanBase/work/powercontext-ecosystem/minimax/runtime/powercontext/state.db`（本次是**新进程**，只从文件读取）
 - 作用域：`scp_3ed3kbsjbb237ts0vw5dvwathm` · key `sddctx-task-001`
-- 记录 16 条 · 按任务关键词排序命中 4 条
+- 记录 17 条 · 按任务关键词排序命中 4 条
 
 - 命中 `todo`（score 0.016393）：[task-001] 待办：按上述规格修改 list_orders, Order, summarize, apply_discounts 等 8 项，并保持回归测试全绿
 - 命中 `todo`（score 0.016129）：[task-001] 待办：按上述规格修改 list_orders, Order, apply_discounts, summarize 等 8 项，并保持回归测试全绿
@@ -22,6 +22,7 @@
 | todo | [task-001] 待办：按上述规格修改 list_orders, Order, apply_discounts, summarize 等 8 项，并保持回归测试全绿 | `art_8380aad570a94a0b86aaa91a719bb2c0` r1 |
 | done | [task-001] 已导入 seekdb：文档 14 个 / 索引条目 61 条（规格 9、代码 21、测试 29） | `art_86d46f4be49843ca9f2516af18e71029` r1 |
 | verified | [task-001] 改后测试：29 passed in 0.03s | `art_89a29108f0f14f7c951034a86b259b62` r1 |
+| verified | [task-001] 验收探针 verify-1793178573：由 verify_acceptance.py 在当前进程写入 | `art_930518f570404b78ba1f5a472e1f77b0` r1 |
 | note | run_sample.sh 第 7 步写入的演示记录，用于验证跨进程复用 | `art_961435ca6645416899f531ecac46e842` r1 |
 | verified | [task-001] 改后测试：29 passed in 0.03s | `art_a8b7ea0dfa0141839338fb50500aaf94` r1 |
 | verified | [task-001] 验收探针 verify-1793177468：由 verify_acceptance.py 在当前进程写入 | `art_cd1a929a8aec4c43a7b901817cbce148` r1 |

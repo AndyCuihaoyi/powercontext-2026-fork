@@ -32,10 +32,10 @@ POWERCONTEXT_DB = _path("SDDCTX_PC_DB", RUNTIME_DIR / "powercontext" / "state.db
 POWERCONTEXT_SCOPE_KEY_PREFIX = os.environ.get("SDDCTX_PC_PREFIX", "sddctx")
 
 MINIMAX_API_KEY = os.environ.get("MINIMAX_API_KEY", "")
-MINIMAX_BASE_URL = os.environ.get("MINIMAX_BASE_URL", "https://api.minimax.io/v1").rstrip("/")
-MINIMAX_MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M2")
+MINIMAX_BASE_URL = os.environ.get("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1").rstrip("/")
+MINIMAX_MODEL = os.environ.get("MINIMAX_MODEL", "MiniMax-M3.1-Flash")
 MINIMAX_TIMEOUT = float(os.environ.get("MINIMAX_TIMEOUT", "180"))
-MINIMAX_MAX_TOKENS = int(os.environ.get("MINIMAX_MAX_TOKENS", "8000"))
+MINIMAX_MAX_TOKENS = int(os.environ.get("MINIMAX_MAX_TOKENS", "16000"))
 MINIMAX_TEMPERATURE = float(os.environ.get("MINIMAX_TEMPERATURE", "0.1"))
 
 CONTEXT_LIMITS = {

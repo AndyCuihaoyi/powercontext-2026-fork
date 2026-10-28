@@ -36,8 +36,8 @@ bash scripts/run_sample.sh     # ③ 跑完整闭环：改前失败 → MiniMax 
 | 变量 | 默认值 | 用途 |
 |---|---|---|
 | `MINIMAX_API_KEY` | 空 | 必填才能真实调用；空则 `agent` 拒绝发请求 |
-| `MINIMAX_BASE_URL` | `https://api.minimax.io/v1` | 国内 Key 用 `https://api.minimaxi.com/v1`；**用错站点会返回 401 `invalid api key (2049)`** |
-| `MINIMAX_MODEL` | `MiniMax-M2` | 本项目验证用的是 `MiniMax-M3.1-Flash`（推理模型，需把 `MINIMAX_MAX_TOKENS` 调大，如 16000） |
+| `MINIMAX_BASE_URL` | `https://api.minimaxi.com/v1`（国内站） | 国际站密钥改填 `https://api.minimax.io/v1`；**用错站点会返回 401 `invalid api key (2049)`** |
+| `MINIMAX_MODEL` | `MiniMax-M3.1-Flash` | 本项目实测模型；推理模型的思考计入 completion，`MINIMAX_MAX_TOKENS` 默认已给到 16000，调小会返回空正文 |
 | `SDDCTX_SEEKDB_PORT` | `2893` | 本样例专用实例端口，避开 2881/2885 等已在用的端口 |
 | `SDDCTX_SEEKDB_DATABASE` | `sdd_eco` | 独立库名，不动其它作品的数据 |
 | `SDDCTX_FTS_PARSER` | `ik` | 中文全文解析器；不可用时自动回退默认解析器 |

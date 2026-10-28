@@ -1,6 +1,6 @@
 # 验收自检 · task-001
 
-生成时间：2026-10-28T08:59:52Z
+生成时间：2026-10-28T09:09:30Z
 
 ## A1 能够运行 → PASS
   ok  交付文件存在：requirements.txt
@@ -71,9 +71,9 @@
   ok  sdd_documents 有真实行数：14
   ok  sdd_items 有真实行数：58
   ok  sdd_tasks 有真实行数：2
-  ok  sdd_query_log 有真实行数：190
+  ok  sdd_query_log 有真实行数：230
   ok  sdd_items 建有 FULLTEXT 索引
-  ok  本次任务有 190 条 seekdb 查询留痕（SQL/参数/命中数/耗时）
+  ok  本次任务有 200 条 seekdb 查询留痕（SQL/参数/命中数/耗时）
   ok  包含全文检索阶段：['applies:code', 'applies:test', 'fulltext:code', 'fulltext:spec', 'fulltext:test', 'keyword:code', 'keyword:spec', 'keyword:test', 'referencers:test', 'sibling:spec']
   ok  上下文里的数据库信息指向 seekdb：5.7.25-OceanBase seekdb-v1.4.0.0
   ok  上下文包内置本次查询明细（可核对不是磁盘遍历）
@@ -87,9 +87,9 @@
   ok  落盘文件：/home/cuihaoyi/OceanBase/work/powercontext-ecosystem/minimax/runtime/powercontext/state.db
   ok  新进程 `state show` 退出码 0
   ok  新进程读回到刚才写入的探针记录（跨进程复用）
-  ok  读回 16 条记录 · 后端 powercontext-embedded-sqlite
+  ok  读回 17 条记录 · 后端 powercontext-embedded-sqlite
   ok  记录来源是 powercontext.atomic_memory，不是自写 JSON
-  ok  上下文注入任务状态 16 条
+  ok  上下文注入任务状态 17 条
   ok  状态含 kind：['decision', 'done', 'note', 'todo', 'verified']
   ok  渲染后的上下文 markdown 里能看到该状态
 
