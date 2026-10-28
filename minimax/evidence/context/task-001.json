@@ -1,0 +1,1217 @@
+{
+  "task": {
+    "task_id": "task-001",
+    "title": "让 since 时间窗口真正作用于订单查询与汇总",
+    "statement": "订单查询与汇总需要按创建时间窗口 since 过滤（边界包含当天），过滤后再排序与分页，排序键为 created_at 升序、order_id 升序；summarize 只统计过滤后的集合；非法 since 抛 ValueError。状态筛选与分页的既有行为必须保持不变。",
+    "keywords": "since, created_at, time window, inclusive boundary, ordering, sort key, stable order, pagination, summarize, 时间窗口, 排序, 分页, 汇总",
+    "source": "seekdb:sdd_tasks",
+    "path": "demo_project/tasks/task-001.md",
+    "verified": true,
+    "verify_note": "ok"
+  },
+  "query": {
+    "terms": [
+      "since",
+      "created_at",
+      "order_id",
+      "summarize",
+      "ValueError",
+      "time",
+      "window",
+      "inclusive",
+      "boundary",
+      "ordering",
+      "sort",
+      "key",
+      "stable",
+      "order",
+      "pagination",
+      "时间窗口真正作用于订单查询与汇总",
+      "订单查询与汇总需要按创建时间窗口",
+      "边界包含当天",
+      "过滤后再排序与分页",
+      "排序键为",
+      "只统计过滤后的集合",
+      "状态筛选与分页的既有行为必须保持不变",
+      "时间窗口"
+    ],
+    "limits": {
+      "spec": 8,
+      "code": 8,
+      "test": 8
+    },
+    "signals": {
+      "spec": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "code": [
+        "fulltext",
+        "keyword",
+        "applies"
+      ],
+      "test": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ]
+    },
+    "applies_targets": [
+      "app/queries.py::list_orders",
+      "app/reporting.py::summarize",
+      "app/repository.py::Order",
+      "app/pricing.py::apply_discounts"
+    ]
+  },
+  "applicable_specs": [
+    {
+      "item_id": "spec:SPEC-205",
+      "kind": "spec",
+      "name": "SPEC-205",
+      "qualified_path": "按创建时间窗口筛选订单",
+      "line_range": [
+        31,
+        49
+      ],
+      "sha256": "f9e8630e46997e6993cd31ecf5da354ba6be6e4f33cdd148624a76e384664d1d",
+      "sha8": "f9e8630e",
+      "score": 0.03687,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/queries.py::list_orders, app/reporting.py::summarize, app/repository.py::Order",
+      "entry_status": "Active",
+      "keywords": "since, created_at, time window, inclusive boundary, ordering, sort key, stable order",
+      "text": "SPEC-205 按创建时间窗口筛选订单\n### SPEC-205 · 按创建时间窗口筛选订单\n\n- Status: Active\n- Applies-to: `app/queries.py::list_orders`, `app/reporting.py::summarize`, `app/repository.py::Order`\n- Keywords: since, created_at, time window, inclusive boundary, ordering, sort key, stable order\n\n规则：\n\n1. `list_orders(orders, status=None, since=None, page=1, page_size=20)` 的 `since` 接受 `YYYY-MM-DD`\n   字符串；给出 `since` 时只返回 `created_at >= since` 的订单，**边界包含当天**（`created_at == since` 必须保留）。\n2. `since=None` 时不启用时间过滤，其余行为与 SPEC-201/SPEC-202 完全一致（向后兼容，不得改变既有结果集合）。\n3. 排序键固定为 `(created_at 升序, order_id 升序)`；同一 `created_at` 的多条记录按 `order_id` 升序输出，\n   不得依赖输入列表的插入顺序。\n4. 过滤顺序为：状态过滤 → 时间窗口过滤 → 排序 → 分页。分页必须在过滤与排序之后进行。\n5. `reporting.summarize(orders, status=None, since=None)` 必须接受与 `list_orders` 相同的时间窗口参数，\n   并且只统计过滤后的集合。\n6. `since` 不是合法 `YYYY-MM-DD` 时抛出 `ValueError`，与 SPEC-201 的未知状态处理保持一致的错误语义。\n7. 兼容性：本条不改变 SPEC-201 的状态取值、SPEC-202 的分页边界与错误行为。\n",
+      "path": "demo_project/specs/order_queries.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-301",
+      "kind": "spec",
+      "name": "SPEC-301",
+      "qualified_path": "汇总口径",
+      "line_range": [
+        3,
+        12
+      ],
+      "sha256": "c91f0ffa8f366885f6c051100924239e46acdbafdb6317ff26a31c5b4b426ccc",
+      "sha8": "c91f0ffa",
+      "score": 0.03614,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/reporting.py::summarize",
+      "entry_status": "Active",
+      "keywords": "summary, count, total_cents, average_cents, by_status",
+      "text": "SPEC-301 汇总口径\n### SPEC-301 · 汇总口径\n\n- Status: Active\n- Applies-to: `app/reporting.py::summarize`\n- Keywords: summary, count, total_cents, average_cents, by_status\n\n规则：`summarize` 返回字典，至少包含 `count`（订单数）、`total_cents`（金额合计）、\n`average_cents`（`total_cents // count`，`count == 0` 时为 0）、`by_status`（按状态分组计数，\n只包含出现过的状态）。汇总对象必须是经过同一套过滤条件筛出的集合，不得混入被过滤掉的订单。\n",
+      "path": "demo_project/specs/reporting.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-201",
+      "kind": "spec",
+      "name": "SPEC-201",
+      "qualified_path": "按状态筛选订单",
+      "line_range": [
+        7,
+        18
+      ],
+      "sha256": "f2b72829da78e13cbb71577954b8d643da023eb17b74b6abe2ba9cc406382435",
+      "sha8": "f2b72829",
+      "score": 0.0359,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/queries.py::list_orders",
+      "entry_status": "Active",
+      "keywords": "status filter, pending, shipped, completed, cancelled, ValueError",
+      "text": "SPEC-201 按状态筛选订单\n### SPEC-201 · 按状态筛选订单\n\n- Status: Active\n- Applies-to: `app/queries.py::list_orders`\n- Keywords: status filter, pending, shipped, completed, cancelled, ValueError\n\n规则：\n\n1. `list_orders(orders, status=None, ...)` 传入状态时只返回该状态的订单；`status=None` 表示不按状态过滤。\n2. 状态取值集合固定为 `pending`、`shipped`、`completed`、`cancelled`。\n3. 传入未知状态时抛出 `ValueError`，且不得返回任何数据（不得静默返回全量）。\n",
+      "path": "demo_project/specs/order_queries.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-202",
+      "kind": "spec",
+      "name": "SPEC-202",
+      "qualified_path": "分页语义",
+      "line_range": [
+        19,
+        30
+      ],
+      "sha256": "678b66d6c0286ada29ff84dec0e451cccb40fa689e463506646e42bcad7986b1",
+      "sha8": "678b66d6",
+      "score": 0.03545,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/queries.py::list_orders",
+      "entry_status": "Active",
+      "keywords": "pagination, page, page_size, slice, ValueError",
+      "text": "SPEC-202 分页语义\n### SPEC-202 · 分页语义\n\n- Status: Active\n- Applies-to: `app/queries.py::list_orders`\n- Keywords: pagination, page, page_size, slice, ValueError\n\n规则：\n\n1. `page` 从 1 开始，`page_size` 是每页条数；返回顺序为「过滤 → 排序 → 分页」。\n2. 请求页超出数据范围时返回空列表，不抛异常、不重复返回最后一页。\n3. `page < 1` 或 `page_size < 1` 时抛出 `ValueError`。\n",
+      "path": "demo_project/specs/order_queries.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-302",
+      "kind": "spec",
+      "name": "SPEC-302",
+      "qualified_path": "空集合汇总",
+      "line_range": [
+        13,
+        20
+      ],
+      "sha256": "08f7470635b5eaf2ad4b8fcc63182d159a5d9982fadf922350c7ffaf09c2325b",
+      "sha8": "08f74706",
+      "score": 0.03495,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/reporting.py::summarize",
+      "entry_status": "Active",
+      "keywords": "empty result, zero count, no division",
+      "text": "SPEC-302 空集合汇总\n### SPEC-302 · 空集合汇总\n\n- Status: Active\n- Applies-to: `app/reporting.py::summarize`\n- Keywords: empty result, zero count, no division\n\n规则：过滤后为空时返回 `count == 0`、`total_cents == 0`、`average_cents == 0`、`by_status == {}`，\n不得抛除零异常。",
+      "path": "demo_project/specs/reporting.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-212",
+      "kind": "spec",
+      "name": "SPEC-212",
+      "qualified_path": "分页参数上界",
+      "line_range": [
+        50,
+        59
+      ],
+      "sha256": "52ee4568d6b8767cc2a695be383141f7a55f02b78cc40e4f9c2220a6b80dab5c",
+      "sha8": "52ee4568",
+      "score": 0.03494,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/queries.py::list_orders",
+      "entry_status": "Active",
+      "keywords": "page_size upper bound, limit, 100, ValueError, bounds",
+      "text": "SPEC-212 分页参数上界\n### SPEC-212 · 分页参数上界\n\n- Status: Active\n- Applies-to: `app/queries.py::list_orders`\n- Keywords: page_size upper bound, limit, 100, ValueError, bounds\n\n规则：\n\n1. `page_size` 必须满足 `1 <= page_size <= 100`；超过上界时抛出 `ValueError`。\n2. 上界为 100。任何调用方需要更大的读取批量时应分页多次请求，而不是放宽本条上界。",
+      "path": "demo_project/specs/order_queries.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-103",
+      "kind": "spec",
+      "name": "SPEC-103",
+      "qualified_path": "优惠券与下限",
+      "line_range": [
+        21,
+        27
+      ],
+      "sha256": "73b5174d39b7eefd9a3be37bfce2e76395a6e5d7413284a9d7720d1890a2b3e7",
+      "sha8": "73b5174d",
+      "score": 0.0347,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/pricing.py::apply_discounts",
+      "entry_status": "Active",
+      "keywords": "coupon, floor, non-negative, total",
+      "text": "SPEC-103 优惠券与下限\n### SPEC-103 · 优惠券与下限\n\n- Status: Active\n- Applies-to: `app/pricing.py::apply_discounts`\n- Keywords: coupon, floor, non-negative, total\n\n规则：优惠券面额在最后抵扣；抵扣后总额不得小于 0 分（低于 0 时取 0）。未知券码抛出 `ValueError`。",
+      "path": "demo_project/specs/pricing.md",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "spec:SPEC-102",
+      "kind": "spec",
+      "name": "SPEC-102",
+      "qualified_path": "满减",
+      "line_range": [
+        13,
+        20
+      ],
+      "sha256": "bc377fdf4e60c9ed7c0c03bb93c2b04ff7f00121d69528a5258d78de0923b613",
+      "sha8": "bc377fdf",
+      "score": 0.03388,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "sibling"
+      ],
+      "applies": "app/pricing.py::apply_discounts",
+      "entry_status": "Active",
+      "keywords": "threshold discount, 10000, 1500, amount off",
+      "text": "SPEC-102 满减\n### SPEC-102 · 满减\n\n- Status: Active\n- Applies-to: `app/pricing.py::apply_discounts`\n- Keywords: threshold discount, 10000, 1500, amount off\n\n规则：会员折扣之后的小计 `>= 10000` 分（即 100 元）时再减 `1500` 分；不足门槛不减。满减只应用一次。\n",
+      "path": "demo_project/specs/pricing.md",
+      "verified": true,
+      "verify_note": "ok"
+    }
+  ],
+  "target_code": [
+    {
+      "item_id": "code:queries:list_orders",
+      "kind": "code",
+      "name": "list_orders",
+      "qualified_path": "demo_project/app/queries.py::list_orders",
+      "line_range": [
+        21,
+        47
+      ],
+      "sha256": "b72146d4b2800ca874cc0e8eef0af582a731e821f14a0cd7c42cd419acd15cbf",
+      "sha8": "b72146d4",
+      "score": 0.05255,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "applies"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "None Order SPEC Sequence TODO VALID_STATUSES ValueError _validate_pagination as_sequence created_at def del for int key lambda list list_orders not order order_id orders page page_size raise return rows since sort start status str",
+      "text": "def list_orders(\n    orders: Sequence[Order] | None = None,\n    status: str | None = None,\n    since: str | None = None,\n    page: int = 1,\n    page_size: int = 20,\n) -> list[Order]:\n    \"\"\"按状态与时间窗口分页返回订单。\n\n    已实现：SPEC-201（状态筛选）、SPEC-202（分页语义）、SPEC-212（分页上界）。\n    未实现：SPEC-205（`since` 时间窗口过滤与 `(created_at, order_id)` 稳定排序）。\n    \"\"\"\n\n    rows = as_sequence(orders)\n    if status is not None:\n        if status not in VALID_STATUSES:\n            raise ValueError(f\"未知状态: {status}\")\n        rows = [order for order in rows if order.status == status]\n\n    # TODO(SPEC-205): since 过滤与 created_at 排序尚未落地，当前参数被忽略。\n    del since\n    rows.sort(key=lambda order: order.order_id)\n\n    _validate_pagination(page, page_size)\n    start = (page - 1) * page_size\n    return rows[start : start + page_size]",
+      "path": "demo_project/app/queries.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:repository:Order",
+      "kind": "code",
+      "name": "Order",
+      "qualified_path": "demo_project/app/repository.py::Order",
+      "line_range": [
+        12,
+        35
+      ],
+      "sha256": "e20136f2c2d4147c1cb401771858c5cdf83e67df5920abe5dc8e37dc359d9333",
+      "sha8": "e20136f2",
+      "score": 0.05093,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "applies"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "Order SPEC YYYY _SEED cancelled class completed created_at customer_id int order_id pending shipped status str total_cents",
+      "text": "class Order:\n    order_id: str\n    customer_id: str\n    status: str\n    created_at: str  # YYYY-MM-DD\n    total_cents: int\n\n\n# 刻意不按 created_at 或 order_id 排序：SPEC-205 要求输出顺序稳定，\n# 与输入列表的插入顺序无关。\n_SEED = (\n    Order(\"O-1007\", \"C-11\", \"completed\", \"2024-04-05\", 2100),\n    Order(\"O-1001\", \"C-02\", \"completed\", \"2024-01-15\", 1200),\n    Order(\"O-1011\", \"C-07\", \"pending\", \"2024-03-01\", 640),\n    Order(\"O-1004\", \"C-03\", \"shipped\", \"2024-03-01\", 1750),\n    Order(\"O-1002\", \"C-05\", \"pending\", \"2024-02-03\", 800),\n    Order(\"O-1005\", \"C-07\", \"pending\", \"2024-03-01\", 300),\n    Order(\"O-1009\", \"C-09\", \"completed\", \"2024-05-11\", 60),\n    Order(\"O-1003\", \"C-02\", \"completed\", \"2024-02-03\", 500),\n    Order(\"O-1006\", \"C-04\", \"cancelled\", \"2024-03-20\", 990),\n    Order(\"O-1010\", \"C-01\", \"completed\", \"2024-06-01\", 3300),\n    Order(\"O-1008\", \"C-12\", \"shipped\", \"2024-04-05\", 450),\n)\n",
+      "path": "demo_project/app/repository.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:reporting:summarize",
+      "kind": "code",
+      "name": "summarize",
+      "qualified_path": "demo_project/app/reporting.py::summarize",
+      "line_range": [
+        10,
+        41
+      ],
+      "sha256": "231b7c808ced0ac427387447c3dc6a10f0dfbb16c2bd83135508687d9d1e2550",
+      "sha8": "231b7c80",
+      "score": 0.0508,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "applies"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "None Order SPEC Sequence TODO VALID_STATUSES ValueError as_sequence average_cents by_status count created_at def del dict else for get int len not object order orders raise return rows since status str sum summarize total total_cents",
+      "text": "def summarize(\n    orders: Sequence[Order] | None = None,\n    status: str | None = None,\n    since: str | None = None,\n) -> dict[str, object]:\n    \"\"\"返回 `count` / `total_cents` / `average_cents` / `by_status`。\n\n    已实现：SPEC-301（汇总字段）、SPEC-302（空集合）、SPEC-201（状态过滤）。\n    未实现：SPEC-205 第 5 点——`since` 时间窗口尚未作用于汇总口径。\n    \"\"\"\n\n    rows = as_sequence(orders)\n    if status is not None:\n        if status not in VALID_STATUSES:\n            raise ValueError(f\"未知状态: {status}\")\n        rows = [order for order in rows if order.status == status]\n\n    # TODO(SPEC-205): since 应把汇总范围收敛到 created_at >= since 的订单。\n    del since\n\n    count = len(rows)\n    total = sum(order.total_cents for order in rows)\n    by_status: dict[str, int] = {}\n    for order in rows:\n        by_status[order.status] = by_status.get(order.status, 0) + 1\n    return {\n        \"count\": count,\n        \"total_cents\": total,\n        \"average_cents\": total // count if count else 0,\n        \"by_status\": by_status,\n    }",
+      "path": "demo_project/app/reporting.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:pricing:apply_discounts",
+      "kind": "code",
+      "name": "apply_discounts",
+      "qualified_path": "demo_project/app/pricing.py::apply_discounts",
+      "line_range": [
+        15,
+        37
+      ],
+      "sha256": "5a5d92eb23c25fdbfed88d5458f179597d8a58e13f9644a18b59cb6b5878c31e",
+      "sha8": "5a5d92eb",
+      "score": 0.0363,
+      "signals": [
+        "keyword",
+        "applies"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "COUPON_CENTS False MEMBER_DISCOUNT_PERCENT None THRESHOLD_CENTS THRESHOLD_OFF_CENTS ValueError apply_discounts bool coupon def int max member not raise return str subtotal_cents total",
+      "text": "def apply_discounts(\n    subtotal_cents: int,\n    member: bool = False,\n    coupon: str | None = None,\n) -> int:\n    \"\"\"依次应用会员折扣、满减、优惠券抵扣，结果不小于 0。\"\"\"\n\n    if subtotal_cents < 0:\n        raise ValueError(\"subtotal_cents 不得为负\")\n\n    total = subtotal_cents\n    if member:\n        total -= total * MEMBER_DISCOUNT_PERCENT // 100\n    if total >= THRESHOLD_CENTS:\n        total -= THRESHOLD_OFF_CENTS\n\n    if coupon is not None:\n        if coupon not in COUPON_CENTS:\n            raise ValueError(f\"未知券码: {coupon}\")\n        total -= COUPON_CENTS[coupon]\n\n    return max(total, 0)",
+      "path": "demo_project/app/pricing.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:queries:__module__",
+      "kind": "code",
+      "name": "__module__",
+      "qualified_path": "demo_project/app/queries.py::__module__",
+      "line_range": [
+        1,
+        1
+      ],
+      "sha256": "466b2eea8d48a911fad416dc25fadab7d71d4441c89c73f6e0cfbc88f9a94ac7",
+      "sha8": "466b2eea",
+      "score": 0.02662,
+      "signals": [
+        "fulltext",
+        "keyword"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "",
+      "text": "\"\"\"订单查询接口（规格见 `specs/order_queries.md`）。\"\"\"",
+      "path": "demo_project/app/queries.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:queries:_validate_pagination",
+      "kind": "code",
+      "name": "_validate_pagination",
+      "qualified_path": "demo_project/app/queries.py::_validate_pagination",
+      "line_range": [
+        12,
+        19
+      ],
+      "sha256": "c256f78b412d41b18f61bdb75da870891fee77a91fa3e36c1bc69252201f733a",
+      "sha8": "c256f78b",
+      "score": 0.02647,
+      "signals": [
+        "fulltext",
+        "keyword"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "MAX_PAGE_SIZE None ValueError _validate_pagination def int page page_size raise",
+      "text": "def _validate_pagination(page: int, page_size: int) -> None:\n    if page < 1:\n        raise ValueError(\"page 必须 >= 1\")\n    if page_size < 1:\n        raise ValueError(\"page_size 必须 >= 1\")\n    if page_size > MAX_PAGE_SIZE:\n        raise ValueError(f\"page_size 不得超过 {MAX_PAGE_SIZE}\")\n",
+      "path": "demo_project/app/queries.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:repository:seed_orders",
+      "kind": "code",
+      "name": "seed_orders",
+      "qualified_path": "demo_project/app/repository.py::seed_orders",
+      "line_range": [
+        37,
+        41
+      ],
+      "sha256": "995a346cf28d105f13f849f08791e49a3ccfcbb6a7205b6fbf18cc18457204f0",
+      "sha8": "995a346c",
+      "score": 0.02642,
+      "signals": [
+        "fulltext",
+        "keyword"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "Order _SEED def return seed_orders tuple",
+      "text": "def seed_orders() -> tuple[Order, ...]:\n    \"\"\"返回固定的 11 条订单样例数据。\"\"\"\n\n    return _SEED\n",
+      "path": "demo_project/app/repository.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "code:__init__:__module__",
+      "kind": "code",
+      "name": "__module__",
+      "qualified_path": "demo_project/app/__init__.py::__module__",
+      "line_range": [
+        1,
+        1
+      ],
+      "sha256": "f05859115e1c971a9bd7568ddcca9f71abcf74ceb87561a3943bfe3cfd302d17",
+      "sha8": "f0585911",
+      "score": 0.01613,
+      "signals": [
+        "fulltext"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "",
+      "text": "\"\"\"验证样例业务工程：订单查询与汇总服务（纯标准库 Python）。\"\"\"",
+      "path": "demo_project/app/__init__.py",
+      "verified": true,
+      "verify_note": "ok"
+    }
+  ],
+  "verification_tests": [
+    {
+      "item_id": "test:test_target_task_001:test_boundary_date_is_inclusive",
+      "kind": "test",
+      "name": "test_boundary_date_is_inclusive",
+      "qualified_path": "demo_project/tests/test_target_task_001.py::test_boundary_date_is_inclusive",
+      "line_range": [
+        41,
+        49
+      ],
+      "sha256": "802447a7f8a814ebabdcbf6afe9ed6c28d189383a28f13bc4c9c5fe1a6d70771",
+      "sha8": "802447a7",
+      "score": 0.04162,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "SPEC _ids assert boundary day def excluded included isdisjoint itself list_orders page_size rule set since test_boundary_date_is_inclusive the",
+      "text": "def test_boundary_date_is_inclusive():\n    \"\"\"SPEC-205 rule 1: the boundary day itself is included.\"\"\"\n\n    included = set(_ids(list_orders(since=\"2024-03-01\", page_size=100)))\n    assert {\"O-1004\", \"O-1005\", \"O-1011\"} <= included\n\n    excluded = set(_ids(list_orders(since=\"2024-03-02\", page_size=100)))\n    assert {\"O-1004\", \"O-1005\", \"O-1011\"}.isdisjoint(excluded)\n",
+      "path": "demo_project/tests/test_target_task_001.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_target_task_001:test_invalid_since_raises_value_error",
+      "kind": "test",
+      "name": "test_invalid_since_raises_value_error",
+      "qualified_path": "demo_project/tests/test_target_task_001.py::test_invalid_since_raises_value_error",
+      "line_range": [
+        88,
+        96
+      ],
+      "sha256": "0c9ee005c1310b3964c4f2d3015edc7edfaf14cf35fbd16ea2ff2928275fc28d",
+      "sha8": "0c9ee005",
+      "score": 0.0414,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "SPEC ValueError date def list_orders not pytest raises rule since test_invalid_since_raises_value_error unusable value with",
+      "text": "def test_invalid_since_raises_value_error():\n    \"\"\"SPEC-205 rule 6: an unusable since value raises ValueError.\"\"\"\n\n    with pytest.raises(ValueError):\n        list_orders(since=\"2024-03-32\")\n\n    with pytest.raises(ValueError):\n        list_orders(since=\"not-a-date\")",
+      "path": "demo_project/tests/test_target_task_001.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_target_task_001:test_ordering_is_created_at_then_order_id",
+      "kind": "test",
+      "name": "test_ordering_is_created_at_then_order_id",
+      "qualified_path": "demo_project/tests/test_target_task_001.py::test_ordering_is_created_at_then_order_id",
+      "line_range": [
+        51,
+        55
+      ],
+      "sha256": "23df168879e466c93849230e92d3cc7cf22aad442d1a9c36bdccbd6329e4c2ec",
+      "sha8": "23df1688",
+      "score": 0.0411,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "FILTERED_IDS SPEC _ids assert created_at def independent input list_orders order order_id page_size rule since sort test_ordering_is_created_at_then_order_id",
+      "text": "def test_ordering_is_created_at_then_order_id():\n    \"\"\"SPEC-205 rule 3: sort by (created_at, order_id), independent of input order.\"\"\"\n\n    assert _ids(list_orders(since=\"2024-03-01\", page_size=100)) == FILTERED_IDS\n",
+      "path": "demo_project/tests/test_target_task_001.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_target_task_001:test_pagination_applies_after_filtering",
+      "kind": "test",
+      "name": "test_pagination_applies_after_filtering",
+      "qualified_path": "demo_project/tests/test_target_task_001.py::test_pagination_applies_after_filtering",
+      "line_range": [
+        57,
+        62
+      ],
+      "sha256": "fc7c15c76feb2b9a95b5e7cb3a42b7cabbbf8c710a10ebb9a17d7533e9afee0b",
+      "sha8": "fc7c15c7",
+      "score": 0.03972,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "SPEC _ids and assert def filter first last list_orders page page_2 page_size paginate rule since sort test_pagination_applies_after_filtering",
+      "text": "def test_pagination_applies_after_filtering():\n    \"\"\"SPEC-205 rule 4: filter and sort first, paginate last.\"\"\"\n\n    page_2 = list_orders(since=\"2024-03-01\", page=2, page_size=3)\n    assert _ids(page_2) == [\"O-1006\", \"O-1007\", \"O-1008\"]\n",
+      "path": "demo_project/tests/test_target_task_001.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_regression_queries:test_explicit_order_list_is_respected",
+      "kind": "test",
+      "name": "test_explicit_order_list_is_respected",
+      "qualified_path": "demo_project/tests/test_regression_queries.py::test_explicit_order_list_is_respected",
+      "line_range": [
+        77,
+        80
+      ],
+      "sha256": "9b9ad7625bdca4580fdbf0a5eb999f2274f0d223780d1a4926b64465ce18c500",
+      "sha8": "9b9ad762",
+      "score": 0.03958,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "MAX_PAGE_SIZE _ids assert def list_orders order_id page_size rows seed_orders test_explicit_order_list_is_respected",
+      "text": "def test_explicit_order_list_is_respected():\n    rows = [seed_orders()[0], seed_orders()[1]]\n    assert _ids(list_orders(rows, page_size=MAX_PAGE_SIZE)) == {rows[0].order_id, rows[1].order_id}",
+      "path": "demo_project/tests/test_regression_queries.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_target_task_001:test_since_filters_out_older_orders",
+      "kind": "test",
+      "name": "test_since_filters_out_older_orders",
+      "qualified_path": "demo_project/tests/test_target_task_001.py::test_since_filters_out_older_orders",
+      "line_range": [
+        32,
+        39
+      ],
+      "sha256": "9f685fca6892f27323a7053133edfe28f60ec8aa9f9f436a85ec6ac52d449962",
+      "sha8": "9f685fca",
+      "score": 0.03882,
+      "signals": [
+        "fulltext",
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "FILTERED_IDS SPEC _ids all assert created_at def for keep len list_orders order orders page_size rows rule set since test_since_filters_out_older_orders with",
+      "text": "def test_since_filters_out_older_orders():\n    \"\"\"SPEC-205 rule 1: keep orders with created_at >= since.\"\"\"\n\n    rows = list_orders(since=\"2024-03-01\", page_size=100)\n    assert len(rows) == len(FILTERED_IDS)\n    assert all(order.created_at >= \"2024-03-01\" for order in rows)\n    assert set(_ids(rows)) == set(FILTERED_IDS)\n",
+      "path": "demo_project/tests/test_target_task_001.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_regression_reporting:test_summarize_rejects_unknown_status",
+      "kind": "test",
+      "name": "test_summarize_rejects_unknown_status",
+      "qualified_path": "demo_project/tests/test_regression_reporting.py::test_summarize_rejects_unknown_status",
+      "line_range": [
+        43,
+        46
+      ],
+      "sha256": "01fb82a561018616a97ad3a5629a279a1ddcfa6e042bfcc933e122b007040445",
+      "sha8": "01fb82a5",
+      "score": 0.02579,
+      "signals": [
+        "fulltext",
+        "keyword"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "ValueError def pytest raises refunded status summarize test_summarize_rejects_unknown_status with",
+      "text": "def test_summarize_rejects_unknown_status():\n    with pytest.raises(ValueError):\n        summarize(status=\"refunded\")",
+      "path": "demo_project/tests/test_regression_reporting.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_regression_queries:test_all_pages_are_disjoint_and_cover_every_order",
+      "kind": "test",
+      "name": "test_all_pages_are_disjoint_and_cover_every_order",
+      "qualified_path": "demo_project/tests/test_regression_queries.py::test_all_pages_are_disjoint_and_cover_every_order",
+      "line_range": [
+        55,
+        67
+      ],
+      "sha256": "49fd36f619d616d3cb6a625f329bb379592c6ec697c798a62bb86d1e0ce456c0",
+      "sha8": "49fd36f6",
+      "score": 0.02419,
+      "signals": [
+        "keyword",
+        "referencers"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "ALL_IDS _ids all assert collected def for isdisjoint len list_orders page page_size pages range set test_all_pages_are_disjoint_and_cover_every_order union",
+      "text": "def test_all_pages_are_disjoint_and_cover_every_order():\n    pages = [\n        list_orders(page=page, page_size=5)\n        for page in range(1, (len(ALL_IDS) // 5) + 2)\n    ]\n    assert all(len(page) <= 5 for page in pages)\n    collected = [_ids(page) for page in pages]\n    union = set().union(*collected)\n    assert union == ALL_IDS\n    for i in range(len(collected)):\n        for j in range(i + 1, len(collected)):\n            assert collected[i].isdisjoint(collected[j])\n",
+      "path": "demo_project/tests/test_regression_queries.py",
+      "verified": true,
+      "verify_note": "ok"
+    },
+    {
+      "item_id": "test:test_regression_pricing:test_non_member_without_coupon_is_unchanged",
+      "kind": "test",
+      "name": "test_non_member_without_coupon_is_unchanged",
+      "qualified_path": "demo_project/tests/test_regression_pricing.py::test_non_member_without_coupon_is_unchanged",
+      "line_range": [
+        10,
+        12
+      ],
+      "sha256": "c189a40daadbbf3bdd0740dc380bd99a5b3c8a8a534c5e2d30b013f4eb3b4fc8",
+      "sha8": "c189a40d",
+      "score": 0.00763,
+      "signals": [
+        "coverage"
+      ],
+      "applies": "",
+      "entry_status": "",
+      "keywords": "apply_discounts assert def test_non_member_without_coupon_is_unchanged",
+      "text": "def test_non_member_without_coupon_is_unchanged():\n    assert apply_discounts(9999) == 9999\n",
+      "path": "demo_project/tests/test_regression_pricing.py",
+      "verified": true,
+      "verify_note": "ok"
+    }
+  ],
+  "regression_files": [
+    {
+      "path": "demo_project/tests/test_regression_pricing.py",
+      "kind": "test",
+      "sha256": "be5e190139e436d16083720b4fb235f9a91813e7b5158abbdd1a6db23da64374",
+      "item_count": 8,
+      "names": "test_non_member_without_coupon_is_unchanged,test_member_discount_is_floor_of_10_percent,test_threshold_discount_applies_once_after_membership,test_threshold_is_evaluated_after_member_discount,test_coupon_is_applied_last,test_total_never_drops_below_zero,test_unknown_coupon_raises_value_error,test_negative_subtotal_raises_value_error"
+    },
+    {
+      "path": "demo_project/tests/test_regression_queries.py",
+      "kind": "test",
+      "sha256": "ec23f8d547b4cc067ed0a7e4c6a3b01c24ff6b50efe58e393d2fca76b52cb1ed",
+      "item_count": 9,
+      "names": "test_status_filter_returns_only_matching_orders,test_status_filter_for_each_status,test_unknown_status_raises_value_error,test_pagination_arguments_are_validated,test_page_size_upper_bound_is_enforced,test_all_pages_are_disjoint_and_cover_every_order,test_page_beyond_range_is_empty,test_without_status_returns_every_order,test_explicit_order_list_is_respected"
+    },
+    {
+      "path": "demo_project/tests/test_regression_reporting.py",
+      "kind": "test",
+      "sha256": "94ef3ffb31ba3a451d9eaf77078d2d264f0b31f1e34e0c176ddc60f9f80b166b",
+      "item_count": 5,
+      "names": "test_summarize_full_data_set,test_summarize_with_status_filter,test_summarize_completed_only,test_summarize_empty_selection_is_not_an_error,test_summarize_rejects_unknown_status"
+    },
+    {
+      "path": "demo_project/tests/test_target_task_001.py",
+      "kind": "test",
+      "sha256": "972ee252768c74fe125d89fa00b1c5ca476ed7034216e61584c6aee3406e7af4",
+      "item_count": 7,
+      "names": "test_since_filters_out_older_orders,test_boundary_date_is_inclusive,test_ordering_is_created_at_then_order_id,test_pagination_applies_after_filtering,test_status_and_since_combine,test_summarize_uses_filtered_set,test_invalid_since_raises_value_error"
+    }
+  ],
+  "task_state": null,
+  "db": {
+    "engine": "seekdb",
+    "version": "5.7.25-OceanBase seekdb-v1.4.0.0",
+    "database": "sdd_eco",
+    "host": "127.0.0.1:2893",
+    "counts": {
+      "sdd_items": 58,
+      "sdd_documents": 14,
+      "sdd_tasks": 2,
+      "sdd_query_log": 160,
+      "items_code": 18,
+      "items_spec": 9,
+      "items_task": 2,
+      "items_test": 29
+    },
+    "queries": [
+      {
+        "log_id": 1000302,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 2,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000301,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 5,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000300,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 18,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000299,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 27,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000298,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 2,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000297,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 18,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000296,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 20,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000295,
+        "stage": "sibling:spec",
+        "terms": "spec:3f416aa7d79d47627f735aba:demo_project/specs/order_queries.md spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md",
+        "hit_count": 9,
+        "elapsed_ms": 5,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000294,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 10,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000293,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 97,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000292,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000291,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000290,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 22,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000289,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 27,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000288,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000287,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 18,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000286,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 21,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000285,
+        "stage": "sibling:spec",
+        "terms": "spec:3f416aa7d79d47627f735aba:demo_project/specs/order_queries.md spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md",
+        "hit_count": 9,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000284,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 15,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000283,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 20,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000282,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000281,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000280,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 21,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000279,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 33,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000278,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000277,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 11,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000276,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 7,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000275,
+        "stage": "sibling:spec",
+        "terms": "spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md spec:eb13e454f77299653eef00ba:demo_project/specs/order_queries.md",
+        "hit_count": 9,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000274,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 13,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000273,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 17,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000272,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000271,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000270,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 12,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000269,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 9,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000268,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000267,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 18,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000266,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 7,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000265,
+        "stage": "sibling:spec",
+        "terms": "spec:3f416aa7d79d47627f735aba:demo_project/specs/order_queries.md spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md",
+        "hit_count": 9,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000264,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 15,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000263,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 22,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000262,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 4,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000261,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 2,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000260,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 12,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000259,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 10,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000258,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 4,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000257,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 9,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000256,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 20,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000255,
+        "stage": "sibling:spec",
+        "terms": "spec:3f416aa7d79d47627f735aba:demo_project/specs/order_queries.md spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md",
+        "hit_count": 9,
+        "elapsed_ms": 4,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000254,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 19,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000253,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 114,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000252,
+        "stage": "applies:test",
+        "terms": "demo_project/tests/test_regression_pricing.py::",
+        "hit_count": 8,
+        "elapsed_ms": 0,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000251,
+        "stage": "referencers:test",
+        "terms": "Order VALID_STATUSES _filter_orders _parse_since _validate_pagination apply_discounts as_sequence list_orders seed_orders summarize",
+        "hit_count": 16,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000250,
+        "stage": "keyword:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 20,
+        "elapsed_ms": 22,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000249,
+        "stage": "fulltext:test",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 38,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000248,
+        "stage": "applies:code",
+        "terms": "app/queries.py::list_orders app/reporting.py::summarize app/repository.py::Order app/pricing.py::apply_discounts",
+        "hit_count": 4,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256 FROM sdd_items WHERE kind = %s AND (qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s OR qualified_path LIKE %s)"
+      },
+      {
+        "log_id": 1000247,
+        "stage": "keyword:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 11,
+        "elapsed_ms": 19,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000246,
+        "stage": "fulltext:code",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 31,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      },
+      {
+        "log_id": 1000245,
+        "stage": "sibling:spec",
+        "terms": "spec:3f416aa7d79d47627f735aba:demo_project/specs/order_queries.md spec:4cdc6c7aea9c3e8c876157d0:demo_project/specs/pricing.md spec:682d7e9af45eaf9342e32160:demo_project/specs/reporting.md",
+        "hit_count": 9,
+        "elapsed_ms": 1,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords, sha256, doc_id FROM sdd_items WHERE kind = %s AND doc_id IN (%s, %s, %s)"
+      },
+      {
+        "log_id": 1000244,
+        "stage": "keyword:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 9,
+        "elapsed_ms": 18,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, text, keywords FROM sdd_items WHERE kind = %s AND (name LIKE %s OR keywords LIKE %s OR text LIKE %s) LIMIT %s"
+      },
+      {
+        "log_id": 1000243,
+        "stage": "fulltext:spec",
+        "terms": "since created_at order_id summarize ValueError time window inclusive boundary ordering sort key stable order pagination 时间窗口真正作用于订单查询与汇总 订单查询与汇总需要按创建时间窗口 边界包含当天 过滤后再排序与分页 排序键为 只统计过滤后的集合 状态筛选与分页的既有行为必须保持不变 时间窗口",
+        "hit_count": 8,
+        "elapsed_ms": 34,
+        "sql": "SELECT item_id, kind, name, qualified_path, start_line, end_line, applies, entry_status, MATCH(text) AGAINST (%s) AS score, text, keywords FROM sdd_items WHERE kind = %s AND MATCH(text) AGAINST (%s) ORDER BY score DESC LIMIT %s"
+      }
+    ]
+  }
+}

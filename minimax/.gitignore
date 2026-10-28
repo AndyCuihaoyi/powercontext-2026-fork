@@ -1,0 +1,7 @@
+# MiniMax SDD 上下文模块：本地运行产物不入库（证据 evidence/ 是交付物，保留）
+.venv/
+runtime/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env

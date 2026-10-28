@@ -1,0 +1,217 @@
+===== target =====
+$ /home/cuihaoyi/OceanBase/work/powercontext-ecosystem/minimax/.venv/bin/python -m pytest -q demo_project/tests/test_target_task_001.py
+rc=1
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+_____________________ test_since_filters_out_older_orders ______________________
+
+    def test_since_filters_out_older_orders():
+        """SPEC-205 rule 1: keep orders with created_at >= since."""
+    
+        rows = list_orders(since="2024-03-01", page_size=100)
+>       assert len(rows) == len(FILTERED_IDS)
+E       AssertionError: assert 11 == 8
+E        +  where 11 = len([Order(order_id='O-1001', customer_id='C-02', status='completed', created_at='2024-01-15', total_cents=1200), Order(or...=300), Order(order_id='O-1006', customer_id='C-04', status='cancelled', created_at='2024-03-20', total_cents=990), ...])
+E        +  and   8 = len(['O-1004', 'O-1005', 'O-1011', 'O-1006', 'O-1007', 'O-1008', ...])
+
+demo_project/tests/test_target_task_001.py:36: AssertionError
+_______________________ test_boundary_date_is_inclusive ________________________
+
+    def test_boundary_date_is_inclusive():
+        """SPEC-205 rule 1: the boundary day itself is included."""
+    
+        included = set(_ids(list_orders(since="2024-03-01", page_size=100)))
+        assert {"O-1004", "O-1005", "O-1011"} <= included
+    
+        excluded = set(_ids(list_orders(since="2024-03-02", page_size=100)))
+>       assert {"O-1004", "O-1005", "O-1011"}.isdisjoint(excluded)
+E       AssertionError: assert False
+E        +  where False = <built-in method isdisjoint of set object at 0x77996eef66c0>({'O-1001', 'O-1002', 'O-1003', 'O-1004', 'O-1005', 'O-1006', ...})
+E        +    where <built-in method isdisjoint of set object at 0x77996eef66c0> = {'O-1004', 'O-1005', 'O-1011'}.isdisjoint
+
+demo_project/tests/test_target_task_001.py:48: AssertionError
+__________________ test_ordering_is_created_at_then_order_id ___________________
+
+    def test_ordering_is_created_at_then_order_id():
+        """SPEC-205 rule 3: sort by (created_at, order_id), independent of input order."""
+    
+>       assert _ids(list_orders(since="2024-03-01", page_size=100)) == FILTERED_IDS
+E       AssertionError: assert ['O-1001', 'O...'O-1006', ...] == ['O-1004', 'O...'O-1008', ...]
+E         
+E         At index 0 diff: 'O-1001' != 'O-1004'
+E         Left contains 3 more items, first extra item: 'O-1009'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:54: AssertionError
+___________________ test_pagination_applies_after_filtering ____________________
+
+    def test_pagination_applies_after_filtering():
+        """SPEC-205 rule 4: filter and sort first, paginate last."""
+    
+        page_2 = list_orders(since="2024-03-01", page=2, page_size=3)
+>       assert _ids(page_2) == ["O-1006", "O-1007", "O-1008"]
+E       AssertionError: assert ['O-1004', 'O-1005', 'O-1006'] == ['O-1006', 'O-1007', 'O-1008']
+E         
+E         At index 0 diff: 'O-1004' != 'O-1006'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:61: AssertionError
+________________________ test_status_and_since_combine _________________________
+
+    def test_status_and_since_combine():
+        """SPEC-205 rule 4 + SPEC-201: both filters apply together."""
+    
+>       assert _ids(list_orders(status="pending", since="2024-03-01", page_size=100)) == [
+            "O-1005",
+            "O-1011",
+        ]
+E       AssertionError: assert ['O-1002', 'O-1005', 'O-1011'] == ['O-1005', 'O-1011']
+E         
+E         At index 0 diff: 'O-1002' != 'O-1005'
+E         Left contains one more item: 'O-1011'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:67: AssertionError
+_______________________ test_summarize_uses_filtered_set _______________________
+
+    def test_summarize_uses_filtered_set():
+        """SPEC-205 rule 5 + SPEC-301: summarize counts only the filtered set."""
+    
+        result = summarize(since="2024-03-01")
+>       assert result["count"] == 8
+E       assert 11 == 8
+
+demo_project/tests/test_target_task_001.py:77: AssertionError
+____________________ test_invalid_since_raises_value_error _____________________
+
+    def test_invalid_since_raises_value_error():
+        """SPEC-205 rule 6: an unusable since value raises ValueError."""
+    
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE ValueError
+
+demo_project/tests/test_target_task_001.py:91: Failed
+=========================== short test summary info ============================
+FAILED demo_project/tests/test_target_task_001.py::test_since_filters_out_older_orders
+FAILED demo_project/tests/test_target_task_001.py::test_boundary_date_is_inclusive
+FAILED demo_project/tests/test_target_task_001.py::test_ordering_is_created_at_then_order_id
+FAILED demo_project/tests/test_target_task_001.py::test_pagination_applies_after_filtering
+FAILED demo_project/tests/test_target_task_001.py::test_status_and_since_combine
+FAILED demo_project/tests/test_target_task_001.py::test_summarize_uses_filtered_set
+FAILED demo_project/tests/test_target_task_001.py::test_invalid_since_raises_value_error
+7 failed in 0.03s
+
+
+
+===== regression =====
+$ /home/cuihaoyi/OceanBase/work/powercontext-ecosystem/minimax/.venv/bin/python -m pytest -q demo_project/tests/test_regression_pricing.py demo_project/tests/test_regression_queries.py demo_project/tests/test_regression_reporting.py
+rc=0
+......................                                                   [100%]
+22 passed in 0.02s
+
+
+
+===== full =====
+$ /home/cuihaoyi/OceanBase/work/powercontext-ecosystem/minimax/.venv/bin/python -m pytest -q demo_project/tests/test_regression_pricing.py demo_project/tests/test_regression_queries.py demo_project/tests/test_regression_reporting.py demo_project/tests/test_target_task_001.py
+rc=1
+......................FFFFFFF                                            [100%]
+=================================== FAILURES ===================================
+_____________________ test_since_filters_out_older_orders ______________________
+
+    def test_since_filters_out_older_orders():
+        """SPEC-205 rule 1: keep orders with created_at >= since."""
+    
+        rows = list_orders(since="2024-03-01", page_size=100)
+>       assert len(rows) == len(FILTERED_IDS)
+E       AssertionError: assert 11 == 8
+E        +  where 11 = len([Order(order_id='O-1001', customer_id='C-02', status='completed', created_at='2024-01-15', total_cents=1200), Order(or...=300), Order(order_id='O-1006', customer_id='C-04', status='cancelled', created_at='2024-03-20', total_cents=990), ...])
+E        +  and   8 = len(['O-1004', 'O-1005', 'O-1011', 'O-1006', 'O-1007', 'O-1008', ...])
+
+demo_project/tests/test_target_task_001.py:36: AssertionError
+_______________________ test_boundary_date_is_inclusive ________________________
+
+    def test_boundary_date_is_inclusive():
+        """SPEC-205 rule 1: the boundary day itself is included."""
+    
+        included = set(_ids(list_orders(since="2024-03-01", page_size=100)))
+        assert {"O-1004", "O-1005", "O-1011"} <= included
+    
+        excluded = set(_ids(list_orders(since="2024-03-02", page_size=100)))
+>       assert {"O-1004", "O-1005", "O-1011"}.isdisjoint(excluded)
+E       AssertionError: assert False
+E        +  where False = <built-in method isdisjoint of set object at 0x72c5554d6340>({'O-1001', 'O-1002', 'O-1003', 'O-1004', 'O-1005', 'O-1006', ...})
+E        +    where <built-in method isdisjoint of set object at 0x72c5554d6340> = {'O-1004', 'O-1005', 'O-1011'}.isdisjoint
+
+demo_project/tests/test_target_task_001.py:48: AssertionError
+__________________ test_ordering_is_created_at_then_order_id ___________________
+
+    def test_ordering_is_created_at_then_order_id():
+        """SPEC-205 rule 3: sort by (created_at, order_id), independent of input order."""
+    
+>       assert _ids(list_orders(since="2024-03-01", page_size=100)) == FILTERED_IDS
+E       AssertionError: assert ['O-1001', 'O...'O-1006', ...] == ['O-1004', 'O...'O-1008', ...]
+E         
+E         At index 0 diff: 'O-1001' != 'O-1004'
+E         Left contains 3 more items, first extra item: 'O-1009'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:54: AssertionError
+___________________ test_pagination_applies_after_filtering ____________________
+
+    def test_pagination_applies_after_filtering():
+        """SPEC-205 rule 4: filter and sort first, paginate last."""
+    
+        page_2 = list_orders(since="2024-03-01", page=2, page_size=3)
+>       assert _ids(page_2) == ["O-1006", "O-1007", "O-1008"]
+E       AssertionError: assert ['O-1004', 'O-1005', 'O-1006'] == ['O-1006', 'O-1007', 'O-1008']
+E         
+E         At index 0 diff: 'O-1004' != 'O-1006'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:61: AssertionError
+________________________ test_status_and_since_combine _________________________
+
+    def test_status_and_since_combine():
+        """SPEC-205 rule 4 + SPEC-201: both filters apply together."""
+    
+>       assert _ids(list_orders(status="pending", since="2024-03-01", page_size=100)) == [
+            "O-1005",
+            "O-1011",
+        ]
+E       AssertionError: assert ['O-1002', 'O-1005', 'O-1011'] == ['O-1005', 'O-1011']
+E         
+E         At index 0 diff: 'O-1002' != 'O-1005'
+E         Left contains one more item: 'O-1011'
+E         Use -v to get more diff
+
+demo_project/tests/test_target_task_001.py:67: AssertionError
+_______________________ test_summarize_uses_filtered_set _______________________
+
+    def test_summarize_uses_filtered_set():
+        """SPEC-205 rule 5 + SPEC-301: summarize counts only the filtered set."""
+    
+        result = summarize(since="2024-03-01")
+>       assert result["count"] == 8
+E       assert 11 == 8
+
+demo_project/tests/test_target_task_001.py:77: AssertionError
+____________________ test_invalid_since_raises_value_error _____________________
+
+    def test_invalid_since_raises_value_error():
+        """SPEC-205 rule 6: an unusable since value raises ValueError."""
+    
+>       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE ValueError
+
+demo_project/tests/test_target_task_001.py:91: Failed
+=========================== short test summary info ============================
+FAILED demo_project/tests/test_target_task_001.py::test_since_filters_out_older_orders
+FAILED demo_project/tests/test_target_task_001.py::test_boundary_date_is_inclusive
+FAILED demo_project/tests/test_target_task_001.py::test_ordering_is_created_at_then_order_id
+FAILED demo_project/tests/test_target_task_001.py::test_pagination_applies_after_filtering
+FAILED demo_project/tests/test_target_task_001.py::test_status_and_since_combine
+FAILED demo_project/tests/test_target_task_001.py::test_summarize_uses_filtered_set
+FAILED demo_project/tests/test_target_task_001.py::test_invalid_since_raises_value_error
+7 failed, 22 passed in 0.05s
+
+

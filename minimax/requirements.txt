@@ -1,0 +1,5 @@
+# 上下文模块运行依赖（Python 3.11+）
+# 注意：必须带 [builtin]，裸 powercontext 缺 sqlalchemy 等内嵌 runtime 依赖。
+powercontext[builtin]==1.4.1
+pymysql<1.2.1
+pytest>=8.0
