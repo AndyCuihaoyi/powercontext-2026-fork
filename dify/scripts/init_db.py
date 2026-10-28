@@ -29,7 +29,13 @@ def config() -> dict[str, object]:
         "user": os.environ.get("SEEKDB_USER", "root"),
         "password": os.environ.get("SEEKDB_PASSWORD", ""),
         "database": os.environ.get("SEEKDB_DATABASE", "pawnshop"),
+        "dify_db": os.environ.get("DIFY_DB_NAME", "dify"),
+        "dify_plugin_db": os.environ.get("DIFY_PLUGIN_DB_NAME", "dify_plugin"),
     }
+
+
+def quote_ident(name: str) -> str:
+    return "`" + name.replace("`", "``") + "`"
 
 
 def connect(cfg: dict[str, object], database: str | None = None) -> pymysql.connections.Connection:
@@ -48,8 +54,10 @@ def main() -> int:
     cfg = config()
     db_name = str(cfg["database"])
     with connect(cfg) as conn, conn.cursor() as cur:
-        cur.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}` DEFAULT CHARACTER SET utf8mb4")
-        cur.execute(f"USE `{db_name}`")
+        for meta_db in (str(cfg["dify_db"]), str(cfg["dify_plugin_db"])):
+            cur.execute(f"CREATE DATABASE IF NOT EXISTS {quote_ident(meta_db)} DEFAULT CHARACTER SET utf8mb4")
+        cur.execute(f"CREATE DATABASE IF NOT EXISTS {quote_ident(db_name)} DEFAULT CHARACTER SET utf8mb4")
+        cur.execute(f"USE {quote_ident(db_name)}")
         cur.execute(
             "CREATE TABLE IF NOT EXISTS players ("
             "id BIGINT AUTO_INCREMENT PRIMARY KEY,"
@@ -95,7 +103,8 @@ def main() -> int:
                     print(f"fulltext attempt failed: {exc}", file=sys.stderr)
             else:
                 print("fulltext index unavailable; gateway will fall back to LIKE", file=sys.stderr)
-    print(f"seekdb ready: {cfg['host']}:{cfg['port']}/{db_name}")
+    print(f"seekdb ready: {cfg['host']}:{cfg['port']} "
+          f"(dify={cfg['dify_db']}, dify_plugin={cfg['dify_plugin_db']}, pawnshop={db_name})")
     return 0
 
 

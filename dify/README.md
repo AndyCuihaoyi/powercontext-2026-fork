@@ -59,7 +59,7 @@ PowerContext scope、把当票编号/状态做成真正的事务数据。网关�
 | seekdb 作为业务账本 | `players` / `tickets`，票号 `Pxxx-yyy`，`status` 状态机 | 同上的 `pawnshop_tables`、`latest_tickets` |
 | seekdb 中文检索 | `FULLTEXT ... WITH PARSER ik`，`MATCH ... AGAINST` 召回旧当票 | `ticket_indexes` 的 `ft_ticket`、`fulltext_probe` |
 | PowerContext 长期记忆 | 每位玩家一个幂等 scope；典当/赎回写 `decision` 记忆，赎回/查账前检索 | `evidence/powercontext-*.json`、`run_e2e` 的 `powercontext-recall` |
-| Dify 真实编排 | 4 个 End 分支、2 段模型提示词、6 个 HTTP 节点、If/Else 路由 | `dsl/memory-pawnshop.yml`、`evidence/dify-app.json` |
+| Dify 真实编排 | 4 个 End 分支、2 段模型提示词、7 个 HTTP 节点、If/Else 路由 | `dsl/memory-pawnshop.yml`、`evidence/dify-app.json` |
 
 ## 4. 快速开始
 
@@ -150,7 +150,7 @@ dify/
 - 验证环境无 Docker daemon，采用源码态部署；手册中的容器提示仅作参考。
 - Dify 迁移 `5578e028b2f2` 使用临时表，seekdb 不支持；空库按手册安全跳过（该迁移只清理历史模型数据）。
 - IK 词典对网络新词覆盖有限；IK 不可用时账本检索自动退化为 `LIKE`，功能不中断。
-- 体验页把 Dify Key 保存在网关进程内；网关与各服务默认只监听 `127.0.0.1`，请勿直接暴露公网。
+- 体验页把 Dify Key 保存在网关进程内；网关、PowerContext、Redis 默认只监听 `127.0.0.1`，Dify API 与 seekdb 可能监听所有网卡，请用防火墙限制访问，不要直接暴露公网。
 - 当票文案由模型生成；mock 模式只用于流程验证，不代表真实模型质量。
 
 ## 10. 版本

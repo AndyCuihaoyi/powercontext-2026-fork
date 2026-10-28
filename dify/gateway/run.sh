@@ -7,4 +7,12 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-exec "${PYTHON:-python3}" app.py
+if [ -z "${PYTHON:-}" ]; then
+  if [ -x .venv/bin/python ]; then
+    PYTHON=.venv/bin/python
+  else
+    PYTHON=python3
+  fi
+fi
+
+exec "$PYTHON" app.py

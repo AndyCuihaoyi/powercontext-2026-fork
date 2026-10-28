@@ -45,5 +45,5 @@ python3 scripts/verify_powercontext.py        # scope / remember / 中文检索
 python3 scripts/verify_seekdb.py              # Dify 172 表 + 当铺表 + IK 索引 + MATCH 探测
 ```
 
-体验页由网关 `/` 提供；`evidence/ui-*.png` 是 Chromium 无头模式跑通
-「典当 → 拿票去赎回 → 查账」后的截图。
+体验页由网关 `/` 提供；`evidence/ui/01-empty.jpg` … `04-ledger.jpg` 是 Chromium
+无头模式跑通「典当 → 拿票去赎回 → 确认赎回 → 查账」后的截图。

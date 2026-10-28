@@ -5,7 +5,10 @@
 工作流只使用 Start / HTTP Request / If-Else / End 节点，这两者本来也不需要。
 
 > 端口约定：Dify API `5001`、seekdb MySQL 协议 `2886`、Redis `56379`、PowerContext `17429`、当铺网关 `8099`。
-> 全部组件只监听 `127.0.0.1`，不要把 API Key 与数据库口令带进仓库。
+> 网关、PowerContext、Redis 使用 `127.0.0.1`；Dify API 与 seekdb 默认监听所有网卡，请用防火墙限制访问。
+> 不要把 API Key 与数据库口令带进仓库。
+>
+> 资源建议：≥8 GB 可用内存、≥10 GB 磁盘（seekdb 与 Dify worker 为主要占用）。
 
 ## 0. 目录
 
@@ -43,7 +46,7 @@ gateway/.venv/bin/python scripts/init_db.py   # 建 dify / dify_plugin / pawnsho
 
 Redis 7.x 以 `--port 56379 --requirepass <pwd>` 启动即可。
 
-Dify 1.18.0 源码：
+Dify 1.18.0 源码（官方仓库 https://github.com/langgenius/dify 的 `1.18.0` 发布版）：
 
 ```bash
 cd /path/to/dify-1.18.0/api
