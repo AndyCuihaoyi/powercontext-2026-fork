@@ -1,0 +1,16 @@
+{
+  "dify_version": "1.18.0",
+  "app_id": "b0ee3e2e-6e3b-44f0-afcb-6b22b2aae5b0",
+  "app_name": "记忆当铺 · Memory Pawnshop",
+  "mode": "workflow",
+  "dsl_file": "dsl/memory-pawnshop.yml",
+  "dsl_sha256": "9cf90048dbd82c96f6994cbdcda83087972a3f235652150e3e059cb5d5ee3d8e",
+  "import_result": "completed-with-warnings (warnings: [])",
+  "dsl_version": {
+    "imported": "0.3.1",
+    "current": "0.7.0"
+  },
+  "published": true,
+  "service_api": "/v1/workflows/run",
+  "notes": "Service API key is stored outside the repository and is not included in this evidence."
+}

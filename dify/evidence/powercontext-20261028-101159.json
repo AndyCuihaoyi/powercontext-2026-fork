@@ -1,0 +1,27 @@
+{
+  "base": "http://127.0.0.1:17429",
+  "run_id": "e832a631",
+  "health_live": {
+    "status": "ok"
+  },
+  "health_ready": {
+    "status": "ready",
+    "checks": {
+      "runtime": "ready",
+      "database": "ready",
+      "artifact_processing_supervisor": "disabled",
+      "access_mode": "disabled",
+      "authentication_provider": "disabled",
+      "access_provider": "disabled",
+      "access_resource_kinds": "server,scope,artifact",
+      "access_artifact_families": "experience:enabled,handoff:enabled,memory:enabled,profile:enabled,prompt:enabled,skill:enabled"
+    }
+  },
+  "scope_id": "scp_7sk4v1wbh3aep1gt9zj1rqedy7",
+  "search_hits": 1,
+  "hit_contains_marker": true,
+  "hit_texts": [
+    "验证标记-e832a631：客人在当铺验证了「记忆当票」的跨请求召回，关键词是青花瓷猫。"
+  ],
+  "ok": true
+}

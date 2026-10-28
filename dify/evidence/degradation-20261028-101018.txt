@@ -1,0 +1,33 @@
+# 降级验证 20261028-101018
+# 网关 8098：POWERCONTEXT_URL=http://127.0.0.1:1, DIFY_BASE_URL=http://127.0.0.1:1（均不可达）
+
+$ curl -s http://127.0.0.1:8098/api/health
+{"gateway": "ok", "llm_mode": "mock", "seekdb": "ok", "powercontext": "error: <urlopen error [Errno 111] Connection refused>", "dify_proxy": true, "web": true, "players": 9, "tickets": 7, "fulltext": true}
+
+$ POST /api/pawn (player=降级验证1010)
+## 当票 · 降级 估价：321 回忆币
+
+---
+**当票编号**：P088-001　|　**估价**：321 回忆币　|　**状态**：已入库
+
+> 老板把这张当票记进了账本，也记进了脑子。下次报上名号，他会想起来的。
+
+> 注意：长期记忆服务暂不可用（upstream http://127.0.0.1:1/v1/scopes is unreachable: [Errno 111] Connection refused），本张当票只记入了账本。
+
+$ POST /api/recall
+【玩家】降级验证1010
+【光临次数】1 次典当
+【最近当票】
+- P088-001 | 2026-10-28 10:10 | 321 回忆币 | 一段用来验证降级的记忆
+【长期记忆】还没有留下印象。
+【提示】长期记忆作用域尚未建立，本次只查账本
+
+$ POST /api/run (Dify down)
+HTTP 502
+upstream http://127.0.0.1:1/v1/workflows/run is unreachable: [Errno 111] Connection refused
+
+$ POST /api/ledger
+【记忆当铺·账本】玩家：降级验证1010
+【累计典当】1 张当票　|　【账本估值】321 回忆币
+【最近十张】
+- P088-001 | 2026-10-28 10:10 | 321 回忆币 | 在库 | 一段用来验证降级的记忆

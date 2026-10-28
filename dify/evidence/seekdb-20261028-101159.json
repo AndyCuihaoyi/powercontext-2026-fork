@@ -1,0 +1,98 @@
+{
+  "databases": [
+    "dify",
+    "dify_plugin",
+    "information_schema",
+    "mysql",
+    "oceanbase",
+    "pawnshop",
+    "test"
+  ],
+  "dify_table_count": 172,
+  "dify_core_tables": [
+    "accounts",
+    "apps",
+    "conversations",
+    "messages",
+    "tenants",
+    "workflow_runs",
+    "workflows"
+  ],
+  "dify_row_counts": {
+    "accounts": 1,
+    "apps": 1,
+    "conversations": 0,
+    "messages": 0,
+    "tenants": 1,
+    "workflow_runs": 38,
+    "workflows": 2
+  },
+  "pawnshop_tables": [
+    "players",
+    "tickets"
+  ],
+  "ticket_indexes": [
+    "PRIMARY:id",
+    "ft_ticket:appraisal",
+    "ft_ticket:memory",
+    "idx_player:player_id",
+    "ticket_no:ticket_no"
+  ],
+  "players": 12,
+  "tickets": 7,
+  "latest_tickets": [
+    {
+      "ticket_no": "P048-004",
+      "player_id": 48,
+      "memory": "我把小学春游时捡到的一块像星星的石头藏进了抽屉，后来搬家弄丢了。",
+      "value": 699
+    },
+    {
+      "ticket_no": "P048-003",
+      "player_id": 48,
+      "memory": "我把小学春游时捡到的一块像星星的石头藏进了抽屉，后来搬家弄丢了。",
+      "value": 699
+    },
+    {
+      "ticket_no": "P048-002",
+      "player_id": 48,
+      "memory": "我把小学春游时捡到的一块像星星的石头藏进了抽屉，后来搬家弄丢了。",
+      "value": 699
+    },
+    {
+      "ticket_no": "P048-001",
+      "player_id": 48,
+      "memory": "我把小学春游时捡到的一块像星星的石头藏进了抽屉，后来搬家弄丢了。",
+      "value": 699
+    },
+    {
+      "ticket_no": "P016-001",
+      "player_id": 16,
+      "memory": "我把高考前一晚偷偷看完的漫画藏进了书包夹层，第二天数学考砸了。",
+      "value": 562
+    }
+  ],
+  "fulltext_index": true,
+  "fulltext_probe": [
+    {
+      "ticket_no": "P008-001",
+      "score": 0.22471910112359553
+    },
+    {
+      "ticket_no": "P003-001",
+      "score": 0.19784172661870505
+    },
+    {
+      "ticket_no": "P016-001",
+      "score": 0.07323568575233022
+    },
+    {
+      "ticket_no": "P048-001",
+      "score": 0.06832298136645962
+    },
+    {
+      "ticket_no": "P048-002",
+      "score": 0.06832298136645962
+    }
+  ]
+}

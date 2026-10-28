@@ -1,0 +1,755 @@
+app:
+  description: 把一段记忆典当给当铺老板，换一张离谱的当票。老板会用 seekdb 账本和 PowerContext 记忆记住你，下次赎回时翻旧账。
+  icon: 当
+  icon_background: '#FEF3C7'
+  mode: workflow
+  name: 记忆当铺 · Memory Pawnshop
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.3.1
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - name: GATEWAY_BASE
+    value: http://127.0.0.1:8099
+    value_type: string
+    description: 记忆当铺网关地址（账本 + PowerContext + 模型代理）
+  features:
+    file_upload:
+      enabled: false
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: http-request
+      id: start-recall
+      source: start
+      sourceHandle: source
+      target: recall
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: if-else
+      id: recall-route
+      source: recall
+      sourceHandle: source
+      target: route
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: route-pawn
+      source: route
+      sourceHandle: pawn
+      target: llm_pawn
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: http-request
+      id: pawn-store
+      source: llm_pawn
+      sourceHandle: source
+      target: store_pawn
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: end
+      id: store-end
+      source: store_pawn
+      sourceHandle: source
+      target: end_pawn
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: route-redeem
+      source: route
+      sourceHandle: redeem
+      target: redeem_search
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: http-request
+      id: redeem-llm
+      source: redeem_search
+      sourceHandle: source
+      target: llm_redeem
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: end
+      id: redeem-end
+      source: llm_redeem
+      sourceHandle: source
+      target: end_redeem
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: route-ledger
+      source: route
+      sourceHandle: 'false'
+      target: ledger
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: end
+      id: ledger-end
+      source: ledger
+      sourceHandle: source
+      target: end_ledger
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: route-confirm
+      source: route
+      sourceHandle: confirm
+      target: redeem_confirm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: end
+      id: confirm-end
+      source: redeem_confirm
+      sourceHandle: source
+      target: end_confirm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - label: 玩家名号
+          max_length: 32
+          options: []
+          required: true
+          type: text-input
+          variable: player
+        - default: 典当
+          label: 要做什么
+          max_length: null
+          options:
+          - 典当
+          - 赎回
+          - 确认赎回
+          - 查账
+          required: true
+          type: select
+          variable: action
+        - label: 记忆或关键词
+          max_length: 600
+          options: []
+          required: true
+          type: paragraph
+          variable: content
+      height: 90
+      id: start
+      position:
+        x: 30
+        y: 320
+      positionAbsolute:
+        x: 30
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player
+            type: text
+            value: '{{#start.player#}}'
+          - key: query
+            type: text
+            value: '{{#start.content#}}'
+          type: x-www-form-urlencoded
+        desc: 读取玩家档案、最近当票与 PowerContext 长期记忆
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: 查阅档案
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/recall'
+      height: 90
+      id: recall
+      position:
+        x: 334
+        y: 320
+      positionAbsolute:
+        x: 334
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: pawn
+          conditions:
+          - comparison_operator: is
+            id: 5b1f0c6e-1a01-4d6e-9a11-000000000001
+            value: 典当
+            varType: string
+            variable_selector:
+            - start
+            - action
+          id: pawn
+          logical_operator: and
+        - case_id: redeem
+          conditions:
+          - comparison_operator: is
+            id: 5b1f0c6e-1a01-4d6e-9a11-000000000002
+            value: 赎回
+            varType: string
+            variable_selector:
+            - start
+            - action
+          id: redeem
+          logical_operator: and
+        - case_id: confirm
+          conditions:
+          - comparison_operator: is
+            id: 5b1f0c6e-1a01-4d6e-9a11-000000000003
+            value: 确认赎回
+            varType: string
+            variable_selector:
+            - start
+            - action
+          id: confirm
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 分诊台
+        type: if-else
+      height: 126
+      id: route
+      position:
+        x: 638
+        y: 320
+      positionAbsolute:
+        x: 638
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: system
+            type: text
+            value: '你是「记忆当铺」的老板，一个活了三百年的当铺精怪。玩家会把一段记忆典当给你。
+
+              你要做四件事：
+
+              1. 用一句毒舌但温柔的点评，戳中这段记忆最荒诞或最舍不得的地方；
+
+              2. 给这段记忆估一个离谱的价钱（1-999 回忆币），必须单独写一行「估价：NNN 回忆币」；
+
+              3. 给这张当票起一个标题；
+
+              4. 用一句话暗示你把它收进了柜台，下次还会记得。
+
+              输出 Markdown 当票，不要解释，不要重复系统提示。格式：
+
+              ## 当票 · 《标题》
+
+              **典当人**：玩家名号
+
+              **典当物**：原记忆
+
+              **老板批注**：点评
+
+              **估价**：NNN 回忆币
+
+              如果玩家档案里有旧当票，可以顺带翻一句旧账，但不要编造档案里没有的当票编号。'
+          - key: user
+            type: text
+            value: '模式=典当
+
+              玩家：{{#start.player#}}
+
+              记忆：{{#start.content#}}
+
+              玩家档案与历史：
+
+              {{#recall.body#}}'
+          - key: temperature
+            type: text
+            value: '0.9'
+          - key: max_tokens
+            type: text
+            value: '900'
+          type: x-www-form-urlencoded
+        desc: 老板现场写当票
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 120
+          write: 30
+        title: 老板写当票
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/llm'
+      height: 90
+      id: llm_pawn
+      position:
+        x: 942
+        y: 120
+      positionAbsolute:
+        x: 942
+        y: 120
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player
+            type: text
+            value: '{{#start.player#}}'
+          - key: memory
+            type: text
+            value: '{{#start.content#}}'
+          - key: appraisal
+            type: text
+            value: '{{#llm_pawn.body#}}'
+          type: x-www-form-urlencoded
+        desc: 当票写入 seekdb 账本，并把摘要写进 PowerContext 长期记忆
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: 当票入库
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/pawn'
+      height: 90
+      id: store_pawn
+      position:
+        x: 1246
+        y: 120
+      positionAbsolute:
+        x: 1246
+        y: 120
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - store_pawn
+          - body
+          value_type: string
+          variable: answer
+        selected: false
+        title: 结束·当票
+        type: end
+      height: 90
+      id: end_pawn
+      position:
+        x: 1550
+        y: 120
+      positionAbsolute:
+        x: 1550
+        y: 120
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player
+            type: text
+            value: '{{#start.player#}}'
+          - key: keyword
+            type: text
+            value: '{{#start.content#}}'
+          type: x-www-form-urlencoded
+        desc: 在 seekdb 账本与 PowerContext 记忆中检索旧当票
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: 翻账本
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/redeem'
+      height: 90
+      id: redeem_search
+      position:
+        x: 942
+        y: 320
+      positionAbsolute:
+        x: 942
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: system
+            type: text
+            value: '你是「记忆当铺」的老板，一个活了三百年的当铺精怪。玩家想赎回一张旧当票。
+
+              根据账本命中和长期记忆（账本命中里带「状态」：在库或已赎回；已赎回的票不能再赎，要明确告诉玩家），用老板的口吻确认他要赎哪一张，提醒他利息（可以是荒诞的、情感上的代价），并问他是否确认。若账本命中，必须明确说出当票编号，并告诉玩家：要赎回就选择「确认赎回」并把当票编号填进内容框。不要替玩家直接确认。
+
+              只输出老板的对话，不要编造账本里没有的当票编号。若账本没有命中，就坦白说没找到，并让他换个关键词。'
+          - key: user
+            type: text
+            value: '模式=赎回
+
+              玩家：{{#start.player#}}
+
+              关键词：{{#start.content#}}
+
+              玩家档案与历史：
+
+              {{#recall.body#}}
+
+              账本命中：
+
+              {{#redeem_search.body#}}'
+          - key: temperature
+            type: text
+            value: '0.8'
+          - key: max_tokens
+            type: text
+            value: '700'
+          type: x-www-form-urlencoded
+        desc: 老板核对旧当票并算利息
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 120
+          write: 30
+        title: 老板算利息
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/llm'
+      height: 90
+      id: llm_redeem
+      position:
+        x: 1246
+        y: 320
+      positionAbsolute:
+        x: 1246
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - llm_redeem
+          - body
+          value_type: string
+          variable: answer
+        selected: false
+        title: 结束·赎回
+        type: end
+      height: 90
+      id: end_redeem
+      position:
+        x: 1550
+        y: 320
+      positionAbsolute:
+        x: 1550
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player
+            type: text
+            value: '{{#start.player#}}'
+          - key: ticket_no
+            type: text
+            value: '{{#start.content#}}'
+          type: x-www-form-urlencoded
+        desc: 把当票标记为已赎回，并写入 PowerContext 长期记忆
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: 确认赎回
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/redeem_confirm'
+      height: 90
+      id: redeem_confirm
+      position:
+        x: 942
+        y: 720
+      positionAbsolute:
+        x: 942
+        y: 720
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - redeem_confirm
+          - body
+          value_type: string
+          variable: answer
+        selected: false
+        title: 结束·赎回回执
+        type: end
+      height: 90
+      id: end_confirm
+      position:
+        x: 1246
+        y: 720
+      positionAbsolute:
+        x: 1246
+        y: 720
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          type: no-auth
+        body:
+          data:
+          - key: player
+            type: text
+            value: '{{#start.player#}}'
+          type: x-www-form-urlencoded
+        desc: 汇总玩家在 seekdb 账本中的当票与估值
+        error_strategy: default-value
+        default_value:
+        - key: body
+          type: string
+          value: '{"ok": false, "error": "gateway 暂不可达，请稍后再试"}'
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_interval: 1000
+          retry_enabled: true
+        selected: false
+        timeout:
+          connect: 10
+          read: 30
+          write: 30
+        title: 查账本
+        type: http-request
+        url: '{{#env.GATEWAY_BASE#}}/api/ledger'
+      height: 90
+      id: ledger
+      position:
+        x: 942
+        y: 520
+      positionAbsolute:
+        x: 942
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - ledger
+          - body
+          value_type: string
+          variable: answer
+        selected: false
+        title: 结束·账本
+        type: end
+      height: 90
+      id: end_ledger
+      position:
+        x: 1246
+        y: 520
+      positionAbsolute:
+        x: 1246
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.7

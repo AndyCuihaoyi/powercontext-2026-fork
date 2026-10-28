@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-10-28T10:11:55+0800",
+  "player": "验证员101153",
+  "dify_base": "http://127.0.0.1:5001",
+  "gateway_base": "http://127.0.0.1:8099",
+  "memory_text": "我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。",
+  "ok": true,
+  "steps": [
+    {
+      "step": "gateway-health",
+      "ok": true,
+      "detail": "fulltext=True players=11 tickets=7"
+    },
+    {
+      "step": "dify-pawn",
+      "ok": true,
+      "detail": "ticket=P108-001"
+    },
+    {
+      "step": "powercontext-recall",
+      "ok": true,
+      "detail": "seekdb ledger + PowerContext memory both recalled"
+    },
+    {
+      "step": "dify-redeem-search",
+      "ok": true,
+      "detail": "ticket P108-001 surfaced"
+    },
+    {
+      "step": "dify-redeem-confirm",
+      "ok": true,
+      "detail": "ticket redeemed and receipt returned"
+    },
+    {
+      "step": "dify-redeem-idempotent",
+      "ok": true,
+      "detail": "second confirm rejected"
+    },
+    {
+      "step": "dify-ledger",
+      "ok": true,
+      "detail": "ledger lists the ticket"
+    },
+    {
+      "step": "cleanup",
+      "ok": true,
+      "detail": "已清空 验证员101153 的当票，并启用新的记忆作用域。"
+    }
+  ],
+  "answers": {
+    "dify-pawn": "## 当票 · 《无人认领的记忆·第53号》\n\n**典当人**：验证员101153\n\n**典当物**：我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。\n\n**老板批注**：估值 179 回忆币。别嫌少，回忆这东西的利息从来不是按钱算的。\n\n**估价**：179 回忆币\n\n**柜台暗号**：048d35\n\n---\n**当票编号**：P108-001　|　**估价**：179 回忆币　|　**状态**：已入库\n\n> 老板把这张当票记进了账本，也记进了脑子。下次报上名号，他会想起来的。",
+    "powercontext-recall": "【玩家】验证员101153\n【光临次数】1 次典当\n【最近当票】\n- P108-001 | 2026-10-28 10:11 | 179 回忆币 | 我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。\n【长期记忆】\n- 【当票 P108-001】验证员101153 典当了记忆：我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。 估价 179 回忆币。当票 · 《无人认领的记忆·第53号》；估值 179 回忆币。别嫌少，回忆这东西的利息从来不是按钱算…",
+    "dify-redeem-search": "老板把一张发黄的当票拍在柜台上：「P108-001，『漫画』。你当初把它当给我，利息是——下次讲起它的时候，不许再笑。确认赎回的话，就把这段记忆重新认领回去；不确认，它继续在柜台里发热。」",
+    "dify-redeem-confirm": "## 赎回回执 · P108-001\n\n**记忆**：我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。\n\n**老板交货**：当票 · 《无人认领的记忆·第53号》；估值 179 回忆币。别嫌少，回忆这东西的利息从来不是按钱算的。\n\n**账面估价**：179 回忆币（概不退款，回忆也不退）\n\n> 老板把记忆推回你手里：拿好，别弄丢。下次再当，押金可要翻倍了。",
+    "dify-redeem-idempotent": "当票 P108-001 已经赎回去了。老板耸耸肩：一张记忆不能赎两次，不然人会活得太满。",
+    "dify-ledger": "【记忆当铺·账本】玩家：验证员101153\n【累计典当】1 张当票　|　【账本估值】179 回忆币\n【最近十张】\n- P108-001 | 2026-10-28 10:11 | 179 回忆币 | 已赎回 | 我把高中时偷偷看完的漫画藏进书包夹层，第二天数学考砸了。"
+  }
+}

@@ -1,0 +1,5 @@
+gateway/.env
+gateway/.venv/
+__pycache__/
+*.pyc
+web/runtime-config.js
